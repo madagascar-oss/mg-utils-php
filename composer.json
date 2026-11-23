@@ -1,0 +1,74 @@
+{
+    "name": "madagascar-oss/mg-utils",
+    "description": "Malagasy number words and Madagascar phone numbers, from one shared spec. Zero dependencies.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "madagascar",
+        "malagasy",
+        "numbers",
+        "words",
+        "phone",
+        "validation"
+    ],
+    "homepage": "https://github.com/madagascar-oss/mg-utils",
+    "support": {
+        "issues": "https://github.com/madagascar-oss/mg-utils/issues",
+        "source": "https://github.com/madagascar-oss/mg-utils/tree/dev/php",
+        "security": "https://github.com/madagascar-oss/mg-utils/security/policy"
+    },
+    "authors": [
+        {
+            "name": "Madagascar OSS contributors",
+            "homepage": "https://github.com/madagascar-oss/mg-utils/graphs/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.3"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpbench/phpbench": "^1.7",
+        "phpmd/phpmd": "^3.0",
+        "phpstan/phpstan": "^2.3",
+        "phpstan/phpstan-strict-rules": "^2.1",
+        "phpunit/phpunit": "^12.5 || ^13.4",
+        "povils/phpmnd": "^3.6",
+        "symfony/yaml": "^7.4 || ^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Madagascar\\MgUtils\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Madagascar\\MgUtils\\Tests\\": "tests/",
+            "Madagascar\\MgUtils\\Benchmarks\\": "benchmarks/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {}
+    },
+    "scripts": {
+        "test": [
+            "@putenv XDEBUG_MODE=coverage",
+            "phpunit --coverage-text=build/coverage.txt --coverage-clover=build/clover.xml",
+            "php tools/check-coverage.php build/clover.xml"
+        ],
+        "cs": "php-cs-fixer check --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "stan": "phpstan analyse --no-progress",
+        "md": "phpmd analyze src --format text --ruleset phpmd.xml",
+        "lint": [
+            "@composer validate --strict",
+            "@cs",
+            "@stan",
+            "@md",
+            "@mnd"
+        ],
+        "bench": "phpbench run --report=aggregate",
+        "mnd": "phpmnd src tests benchmarks tools --extensions=all --ignore-numbers=0,1,-1 --include-numeric-string --exclude-path=Words/Generated --exclude-path=Phone/Generated"
+    }
+}

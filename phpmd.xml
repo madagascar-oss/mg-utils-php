@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<ruleset name="mg-utils"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd">
+    <description>Coding rules 1, 2 and 10 from docs/CODING.md.</description>
+    <exclude-pattern>*/Generated/*</exclude-pattern>
+
+    <!-- Rule 2: one function, one job -->
+    <rule ref="rulesets/codesize.xml/CyclomaticComplexity">
+        <properties>
+            <property name="reportLevel" value="10"/>
+        </properties>
+    </rule>
+    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength">
+        <properties>
+            <property name="minimum" value="25"/>
+            <property name="ignore-whitespace" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="rulesets/codesize.xml/ExcessiveParameterList">
+        <properties>
+            <property name="minimum" value="4"/>
+        </properties>
+    </rule>
+    <rule ref="rulesets/cleancode.xml/BooleanArgumentFlag"/>
+
+    <!-- Rule 1: names carry the meaning -->
+    <rule ref="rulesets/naming.xml/ShortVariable">
+        <properties>
+            <property name="minimum" value="2"/>
+        </properties>
+    </rule>
+    <rule ref="rulesets/naming.xml/ShortMethodName"/>
+    <rule ref="rulesets/naming.xml/BooleanGetMethodName"/>
+
+    <!-- Rule 10: delete before adding -->
+    <rule ref="rulesets/unusedcode.xml"/>
+</ruleset>
