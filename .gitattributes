@@ -1,4 +1,6 @@
-# Keep the Packagist mirror lean: only src/, composer.json, README and LICENSE ship.
+* text=auto eol=lf
+
+# Keep Composer dists lean: only src/, composer.json, README and LICENSE ship.
 /tests export-ignore
 /benchmarks export-ignore
 /tools export-ignore
@@ -10,3 +12,16 @@
 /phpstan.neon.dist export-ignore
 /phpunit.xml.dist export-ignore
 /package.json export-ignore
+/spec export-ignore
+/.gitmodules export-ignore
+/.github export-ignore
+/pnpm-lock.yaml export-ignore
+/tsconfig.json export-ignore
+/tsconfig.base.json export-ignore
+/justfile export-ignore
+/lefthook.yml export-ignore
+/.editorconfig export-ignore
+/.prettierrc.json export-ignore
+/.markdownlint.yaml export-ignore
+/.yamllint.yaml export-ignore
+/renovate.json export-ignore

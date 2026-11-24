@@ -15,7 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  */
 final class SpecVectorsTest extends TestCase
 {
-    private const string SPEC_DIR = __DIR__ . '/../../spec';
+    private const string SPEC_DIR = __DIR__ . '/../spec';
 
     /**
      * @return array<string, array<string, \Closure>>

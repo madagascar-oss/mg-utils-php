@@ -1,12 +1,14 @@
-# madagascar-oss/mg-utils
+# mg-utils-php
+
+[![CI](https://github.com/madagascar-oss/mg-utils-php/actions/workflows/ci.yml/badge.svg)](https://github.com/madagascar-oss/mg-utils-php/actions/workflows/ci.yml)
 
 Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
 Implements spec 0.1.0.
 
-> This package is a read-only mirror of the `php/` folder of
-> [madagascar-oss/mg-utils](https://github.com/madagascar-oss/mg-utils). Open issues and pull
-> requests there.
+Data and test vectors come from [mg-utils-spec](https://github.com/madagascar-oss/mg-utils-spec),
+included as a git submodule at `spec/`. The JavaScript port is
+[mg-utils-js](https://github.com/madagascar-oss/mg-utils-js).
 
 ```sh
 composer require madagascar-oss/mg-utils
@@ -57,7 +59,12 @@ Errors throw `Madagascar\MgUtils\MgUtilsException`; check `$exception->errorCode
 (`ErrorCode::OutOfRange`, …), which is the same code in every mg-utils language.
 
 Rules, sources and recorded disagreements:
-[spec/words](https://github.com/madagascar-oss/mg-utils/blob/dev/spec/words/README.md),
-[spec/phone](https://github.com/madagascar-oss/mg-utils/blob/dev/spec/phone/README.md),
-[spec/ariary](https://github.com/madagascar-oss/mg-utils/blob/dev/spec/ariary/README.md),
-[spec/date](https://github.com/madagascar-oss/mg-utils/blob/dev/spec/date/README.md).
+[spec/words](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/words/README.md),
+[spec/phone](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/phone/README.md),
+[spec/ariary](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/ariary/README.md),
+[spec/date](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/date/README.md).
+
+## Contributing
+
+Data or vector changes go to [mg-utils-spec](https://github.com/madagascar-oss/mg-utils-spec)
+first. Code changes: see [CONTRIBUTING.md](CONTRIBUTING.md).

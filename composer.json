@@ -15,16 +15,16 @@
         "validation",
         "words"
     ],
-    "homepage": "https://github.com/madagascar-oss/mg-utils",
+    "homepage": "https://github.com/madagascar-oss/mg-utils-php",
     "support": {
-        "issues": "https://github.com/madagascar-oss/mg-utils/issues",
-        "source": "https://github.com/madagascar-oss/mg-utils/tree/dev/php",
-        "security": "https://github.com/madagascar-oss/mg-utils/security/policy"
+        "issues": "https://github.com/madagascar-oss/mg-utils-php/issues",
+        "source": "https://github.com/madagascar-oss/mg-utils-php",
+        "security": "https://github.com/madagascar-oss/mg-utils-php/security/policy"
     },
     "authors": [
         {
             "name": "Madagascar OSS contributors",
-            "homepage": "https://github.com/madagascar-oss/mg-utils/graphs/contributors"
+            "homepage": "https://github.com/madagascar-oss/mg-utils-php/graphs/contributors"
         }
     ],
     "require": {

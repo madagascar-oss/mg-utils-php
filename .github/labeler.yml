@@ -1,0 +1,21 @@
+ci:
+  - changed-files:
+      - any-glob-to-any-file: [.github/**, justfile, renovate.json]
+docs:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.md'
+spec:
+  - changed-files:
+      - any-glob-to-any-file: spec
+phone:
+  - changed-files:
+      - any-glob-to-any-file: ['src/Phone/**', 'tests/Phone/**']
+words:
+  - changed-files:
+      - any-glob-to-any-file: ['src/Words/**', 'tests/Words/**']
+ariary:
+  - changed-files:
+      - any-glob-to-any-file: ['src/Ariary/**', 'tests/Ariary/**']
+date:
+  - changed-files:
+      - any-glob-to-any-file: ['src/Date/**', 'tests/Date/**']
