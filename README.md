@@ -1,6 +1,6 @@
 # madagascar-oss/mg-utils
 
-Malagasy number words, Madagascar mobile phone numbers and Ariary amounts for PHP. Zero dependencies, PHP 8.3+.
+Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
 Implements spec 0.1.0.
 
@@ -43,10 +43,21 @@ Ariary::fromInt(1500)->toWords();             // 'dimanjato sy arivo ariary'
 Ariary::fromFmg(7500)->amount;                // 1500
 ```
 
+```php
+use Madagascar\MgUtils\Date\DateStyle;
+use Madagascar\MgUtils\Date\MalagasyDate;
+
+MalagasyDate::fromString('2026-11-23')->format();                // '23 Novambra 2026'
+MalagasyDate::fromString('2026-11-23')->format(DateStyle::Full); // 'Alatsinainy 23 Novambra 2026'
+MalagasyDate::fromDateTime(new DateTimeImmutable())->format(DateStyle::Numeric);
+MalagasyDate::monthName(6);                                      // 'Jona'
+```
+
 Errors throw `Madagascar\MgUtils\MgUtilsException`; check `$exception->errorCode`
 (`ErrorCode::OutOfRange`, …), which is the same code in every mg-utils language.
 
 Rules, sources and recorded disagreements:
 [spec/words](https://github.com/madagascar-oss/mg-utils/blob/dev/spec/words/README.md),
 [spec/phone](https://github.com/madagascar-oss/mg-utils/blob/dev/spec/phone/README.md),
-[spec/ariary](https://github.com/madagascar-oss/mg-utils/blob/dev/spec/ariary/README.md).
+[spec/ariary](https://github.com/madagascar-oss/mg-utils/blob/dev/spec/ariary/README.md),
+[spec/date](https://github.com/madagascar-oss/mg-utils/blob/dev/spec/date/README.md).

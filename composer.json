@@ -1,11 +1,13 @@
 {
     "name": "madagascar-oss/mg-utils",
-    "description": "Malagasy number words, Madagascar phone numbers and Ariary amounts, from one shared spec. Zero dependencies.",
+    "description": "Malagasy number words, Madagascar phone numbers, Ariary amounts and dates, from one shared spec. Zero dependencies.",
     "type": "library",
     "license": "MIT",
     "keywords": [
         "ariary",
+        "calendar",
         "currency",
+        "date",
         "madagascar",
         "malagasy",
         "numbers",
@@ -71,6 +73,6 @@
             "@mnd"
         ],
         "bench": "phpbench run --report=aggregate",
-        "mnd": "phpmnd src tests benchmarks tools --extensions=all --ignore-numbers=0,1,-1 --include-numeric-string --exclude-path=Words/Generated --exclude-path=Phone/Generated --exclude-path=Ariary/Generated"
+        "mnd": "phpmnd src tests benchmarks tools --extensions=all --ignore-numbers=0,1,-1 --include-numeric-string --exclude-path=Words/Generated --exclude-path=Phone/Generated --exclude-path=Ariary/Generated --exclude-path=Date/Generated"
     }
 }
