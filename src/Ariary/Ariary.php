@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Ariary;
 
 use Madagascar\MgUtils\Ariary\Generated\Data;
+use Madagascar\MgUtils\Ariary\Internal\AmountText;
 use Madagascar\MgUtils\ErrorCode;
 use Madagascar\MgUtils\MgUtilsException;
+use Madagascar\MgUtils\SafeParseResult;
 use Madagascar\MgUtils\Words\NumberWords;
 
 /**
@@ -67,6 +69,23 @@ final readonly class Ariary
         $amount = AmountText::read($text);
 
         return \is_int($amount) ? new self($amount) : null;
+    }
+
+    /**
+     * Like `parse()`, but never throws: returns the amount or the reason it was rejected.
+     *
+     * Example: `Ariary::safeParse('1,500')->error?->errorCode` is `ErrorCode::InvalidFormat`.
+     *
+     * @return SafeParseResult<self>
+     */
+    public static function safeParse(mixed $text): SafeParseResult
+    {
+        if (!\is_string($text)) {
+            return SafeParseResult::failure(new MgUtilsException(ErrorCode::InvalidType, 'Expected the amount as a string.'));
+        }
+        $amount = AmountText::read($text);
+
+        return \is_int($amount) ? SafeParseResult::success(new self($amount)) : SafeParseResult::failure($amount);
     }
 
     /**

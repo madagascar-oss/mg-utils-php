@@ -31,6 +31,7 @@ $phone->operator->displayName();                  // 'Telma'
 $phone->format(PhoneNumberFormat::International); // '+261 34 12 345 67'
 
 PhoneNumber::tryParse('035 12 345 67'); // null
+PhoneNumber::safeParse('035 12 345 67')->error?->errorCode; // ErrorCode::UnknownOperator
 PhoneNumber::isValid($userInput);       // bool, never throws
 ```
 
@@ -41,6 +42,7 @@ use Madagascar\MgUtils\Ariary\Grouping;
 Ariary::fromInt(1500)->format();              // 'Ar 1 500' (no-break spaces, never a comma)
 Ariary::fromInt(1500)->format(Grouping::Dot); // 'Ar 1.500'
 Ariary::parse('1.500 Ar')->amount;            // 1500
+Ariary::safeParse('1,500')->error?->errorCode; // ErrorCode::InvalidFormat
 Ariary::fromInt(1500)->toWords();             // 'dimanjato sy arivo ariary'
 Ariary::fromFmg(7500)->amount;                // 1500
 ```

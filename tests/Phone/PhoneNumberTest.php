@@ -19,6 +19,8 @@ final class PhoneNumberTest extends TestCase
     // Longer than most phone spellings, short enough to stay under the 32-character limit often.
     private const int FUZZ_MAX_INPUT_LENGTH = 20;
     private const string TELMA_NUMBER_WITH_NEW_PREFIX = '0381234567';
+    // A phone number given as an integer instead of a string.
+    private const int NUMBER_NOT_A_STRING = 341234567;
 
     public function testTryParseReturnsThePhoneNumberForValidInput(): void
     {
@@ -28,6 +30,29 @@ final class PhoneNumberTest extends TestCase
     public function testTryParseReturnsNullInsteadOfThrowing(): void
     {
         self::assertNull(PhoneNumber::tryParse('035 12 345 67'));
+    }
+
+    public function testSafeParseReturnsThePhoneNumberOnSuccess(): void
+    {
+        $result = PhoneNumber::safeParse('034 12 345 67');
+
+        self::assertTrue($result->success);
+        self::assertSame(Operator::Telma, $result->data?->operator);
+        self::assertNull($result->error);
+    }
+
+    public function testSafeParseReturnsTheErrorCodeInsteadOfThrowing(): void
+    {
+        $result = PhoneNumber::safeParse('035 12 345 67');
+
+        self::assertFalse($result->success);
+        self::assertNull($result->data);
+        self::assertSame(ErrorCode::UnknownOperator, $result->error?->errorCode);
+    }
+
+    public function testSafeParseRejectsNonStringsAsInvalidType(): void
+    {
+        self::assertSame(ErrorCode::InvalidType, PhoneNumber::safeParse(self::NUMBER_NOT_A_STRING)->error?->errorCode);
     }
 
     public function testRejectsInvalidUtf8AsInvalidFormat(): void

@@ -16,7 +16,7 @@ final class AriaryTest extends TestCase
     private const int RANDOM_SEED = 2026;
     private const int FUZZ_RUNS = 2000;
     private const int FUZZ_MAX_INPUT_LENGTH = 20;
-    // Largest supported amount (spec/ariary/data.yaml limits.max).
+    // Largest supported amount (spec/modules/ariary/data.yaml limits.max).
     private const int LARGEST_SUPPORTED_AMOUNT = 999_999_999_999;
     private const string SAMPLE_TEXT = '1 500 Ar';
     private const int SAMPLE_AMOUNT = 1500;
@@ -29,6 +29,29 @@ final class AriaryTest extends TestCase
     public function testTryParseReturnsNullInsteadOfThrowing(): void
     {
         self::assertNull(Ariary::tryParse('1,500'));
+    }
+
+    public function testSafeParseReturnsTheAmountOnSuccess(): void
+    {
+        $result = Ariary::safeParse(self::SAMPLE_TEXT);
+
+        self::assertTrue($result->success);
+        self::assertSame(self::SAMPLE_AMOUNT, $result->data?->amount);
+        self::assertNull($result->error);
+    }
+
+    public function testSafeParseReturnsTheErrorCodeInsteadOfThrowing(): void
+    {
+        $result = Ariary::safeParse('1,500');
+
+        self::assertFalse($result->success);
+        self::assertNull($result->data);
+        self::assertSame(ErrorCode::InvalidFormat, $result->error?->errorCode);
+    }
+
+    public function testSafeParseRejectsNonStringsAsInvalidType(): void
+    {
+        self::assertSame(ErrorCode::InvalidType, Ariary::safeParse(self::SAMPLE_AMOUNT)->error?->errorCode);
     }
 
     public function testRejectsInvalidUtf8AsInvalidFormat(): void
