@@ -6,6 +6,8 @@ Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates
 
 Implements spec 0.2.0.
 
+**Docs and live playground (run PHP in your browser):** [madagascar-oss.github.io/mg-utils-docs](https://madagascar-oss.github.io/mg-utils-docs/docs/installation/using-composer/)
+
 Data and test vectors come from [mg-utils-spec](https://github.com/madagascar-oss/mg-utils-spec),
 included as a git submodule at `spec/`. The JavaScript port is
 [mg-utils-js](https://github.com/madagascar-oss/mg-utils-js).
