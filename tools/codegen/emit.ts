@@ -1,6 +1,6 @@
 // PHP source for spec data, written directly in PER-CS style (generated files are not
 // reformatted, so the drift check compares exactly what this module prints).
-import type { ErrorDefinition } from '../../lib/spec.ts';
+import type { ErrorDefinition } from '../lib/spec.ts';
 
 export const GENERATED_HEADER = '// GENERATED — edit spec/ instead. Run `just codegen` to refresh.';
 export const ROOT_NAMESPACE = 'Madagascar\\MgUtils';

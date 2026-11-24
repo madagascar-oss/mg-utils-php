@@ -9,7 +9,7 @@ import {
   type DateData,
   type PhoneData,
   type WordsData,
-} from '../shared/tables.ts';
+} from './tables.ts';
 import { ROOT_NAMESPACE, dataClass, pascalCase, phpFile, phpLiteral } from './emit.ts';
 
 export interface PhpOutput {
@@ -253,7 +253,7 @@ const EMITTERS: Readonly<Record<string, (data: never, source: string) => PhpOutp
 };
 
 export function moduleFiles(module: string, data: unknown, specVersion: string): PhpOutput[] {
-  const source = `spec/${module}/data.yaml (spec ${specVersion})`;
+  const source = `spec/modules/${module}/data.yaml (spec ${specVersion})`;
   const emit = EMITTERS[module];
   if (emit !== undefined) return emit(data as never, source);
   const pascal = pascalCase(module);
