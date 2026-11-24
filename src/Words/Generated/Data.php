@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Words\Generated;
 
 /**
- * Lookup tables from spec/modules/words/data.yaml (spec 0.2.0).
+ * Lookup tables from spec/modules/words/data.yaml (spec 0.3.0).
  *
  * @internal
  */
@@ -88,7 +88,7 @@ final class Data
         ],
     ];
 
-    public const string JOINER_UNITS_BEFORE_TEN = 'ambin\' ny';
+    public const string JOINER_UNITS_BEFORE_TEN = 'ambin\'ny';
 
     public const string JOINER_BELOW_THOUSAND = 'amby';
 
