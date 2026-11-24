@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Ariary;
+namespace Madagascar\MgUtils\Ariary\Internal;
 
 use Madagascar\MgUtils\Ariary\Generated\Data;
 use Madagascar\MgUtils\ErrorCode;
@@ -11,7 +11,7 @@ use Madagascar\MgUtils\MgUtilsException;
 /**
  * Reads amounts typed by users. Patterns are built once from the spec data.
  *
- * @internal
+ * @internal not part of the public API; use `Ariary::parse()`, `tryParse()` or `safeParse()`
  */
 final class AmountText
 {
