@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Words\Generated;
 
 /**
- * Lookup tables from spec/words/data.yaml (spec 0.1.0).
+ * Lookup tables from spec/modules/words/data.yaml (spec 0.2.0).
  *
  * @internal
  */

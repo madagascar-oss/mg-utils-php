@@ -4,7 +4,7 @@
 
 Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
-Implements spec 0.1.0.
+Implements spec 0.2.0.
 
 Data and test vectors come from [mg-utils-spec](https://github.com/madagascar-oss/mg-utils-spec),
 included as a git submodule at `spec/`. The JavaScript port is
@@ -59,10 +59,10 @@ Errors throw `Madagascar\MgUtils\MgUtilsException`; check `$exception->errorCode
 (`ErrorCode::OutOfRange`, …), which is the same code in every mg-utils language.
 
 Rules, sources and recorded disagreements:
-[spec/words](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/words/README.md),
-[spec/phone](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/phone/README.md),
-[spec/ariary](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/ariary/README.md),
-[spec/date](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/date/README.md).
+[words](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/modules/words/README.md),
+[phone](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/modules/phone/README.md),
+[ariary](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/modules/ariary/README.md),
+[date](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/modules/date/README.md).
 
 ## Contributing
 

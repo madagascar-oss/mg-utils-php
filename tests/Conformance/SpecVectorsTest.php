@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Tests;
+namespace Madagascar\MgUtils\Tests\Conformance;
 
 use Madagascar\MgUtils\MgUtilsException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -10,12 +10,12 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Runs every vector in spec/<module>/tests.yaml against the PHP API.
+ * Runs every vector in spec/modules/<module>/tests.yaml against the PHP API.
  * A module is "done" in PHP when all of its vectors pass here.
  */
 final class SpecVectorsTest extends TestCase
 {
-    private const string SPEC_DIR = __DIR__ . '/../spec';
+    private const string MODULES_DIR = __DIR__ . '/../../spec/modules';
 
     /**
      * @return array<string, array<string, \Closure>>
@@ -23,7 +23,7 @@ final class SpecVectorsTest extends TestCase
     private static function functions(): array
     {
         /** @var array<string, array<string, \Closure>> */
-        return require __DIR__ . '/spec-functions.php';
+        return require __DIR__ . '/functions.php';
     }
 
     /**
@@ -33,7 +33,7 @@ final class SpecVectorsTest extends TestCase
     {
         foreach (self::functions() as $module => $moduleFunctions) {
             /** @var list<array<string, mixed>> $vectors */
-            $vectors = Yaml::parseFile(self::SPEC_DIR . "/{$module}/tests.yaml");
+            $vectors = Yaml::parseFile(self::MODULES_DIR . "/{$module}/tests.yaml");
             foreach ($vectors as $index => $vector) {
                 $name = \is_string($vector['fn'] ?? null) ? $vector['fn'] : array_key_first($moduleFunctions);
                 yield "{$module} #{$index} {$name}" => [$moduleFunctions[$name], $vector];

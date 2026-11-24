@@ -2,7 +2,7 @@
 // Usage: just new-module <name>   (lower-case, e.g. ariary)
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ROOT_DIR, SPEC_DIR } from '../lib/spec.ts';
+import { MODULES_DIR, ROOT_DIR } from '../lib/spec.ts';
 
 const MODULE_NAME = /^[a-z][a-z0-9]*$/;
 const name = process.argv[2] ?? '';
@@ -10,7 +10,7 @@ if (!MODULE_NAME.test(name)) {
   console.error('Usage: just new-module <name>  (lower-case letters and digits, e.g. ariary)');
   process.exit(1);
 }
-if (!existsSync(join(SPEC_DIR, name, 'data.yaml'))) {
+if (!existsSync(join(MODULES_DIR, name, 'data.yaml'))) {
   console.error(`Module "${name}" is not in spec/. Add it to mg-utils-spec and bump the submodule first.`);
   process.exit(1);
 }
@@ -54,7 +54,7 @@ final class ${pascal}
 `,
 );
 write(
-  join(phpDir, 'tests', 'spec-functions', `${name}.php`),
+  join(phpDir, 'tests', 'Conformance', 'functions', `${name}.php`),
   `<?php
 
 declare(strict_types=1);
