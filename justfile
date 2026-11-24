@@ -5,20 +5,21 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 default:
     @just --list
 
-# Fetch the spec submodule and install dependencies
+# Fetch the spec submodule, install dependencies and git hooks
 setup:
     git submodule update --init
     command -v pnpm >/dev/null || npm install --global pnpm@10
     pnpm install --frozen-lockfile
     composer install
+    pnpm hooks
 
 # Regenerate src/*/Generated and src/{ErrorCode,Spec}.php from spec/ (never edit them by hand)
 codegen:
     pnpm codegen
 
-# Fail if generated code drifted from the spec
+# Typecheck and dead-code check the codegen, and fail if generated code drifted from the spec
 check:
-    pnpm typecheck
+    pnpm lint
     pnpm codegen
     git diff --exit-code -- src || (echo "Generated code is out of date: run 'just codegen' and commit." && exit 1)
 

@@ -1,8 +1,39 @@
 {
-  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "types": ["node"]
+    "target": "ES2022",
+    "lib": [
+      "ES2023"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "useUnknownInCatchVariables": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "stripInternal": true,
+    "noEmit": true,
+    "types": [
+      "node"
+    ]
   },
-  "include": ["tools/**/*.ts"],
-  "exclude": ["**/node_modules/**", "spec/**"]
+  "include": [
+    "tools/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "spec/**"
+  ]
 }
