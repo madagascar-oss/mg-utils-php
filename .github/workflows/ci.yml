@@ -27,7 +27,7 @@ jobs:
           persist-credentials: false
           submodules: true
       - uses: ./.github/actions/setup
-      - run: pnpm typecheck
+      - run: pnpm lint
       - run: pnpm codegen
       - name: Generated code matches spec/
         run: git diff --exit-code -- src || (echo "::error::Generated code is out of date. Run 'just codegen' and commit." && exit 1)

@@ -6,15 +6,6 @@ import { parse } from 'yaml';
 export const ROOT_DIR = fileURLToPath(new URL('../..', import.meta.url));
 export const SPEC_DIR = join(ROOT_DIR, 'spec');
 export const MODULES_DIR = join(SPEC_DIR, 'modules');
-/** Length of an ISO 8601 calendar date such as 2026-11-24. */
-const ISO_DATE_LENGTH = 10;
-/** Indentation of JSON files written by tools, matching Prettier. */
-export const JSON_INDENT = 2;
-
-/** Today's date as YYYY-MM-DD (tools only; library code never reads the clock). */
-export function isoDate(date: Date = new Date()): string {
-  return date.toISOString().slice(0, ISO_DATE_LENGTH);
-}
 
 export const MODULE_FILES = ['README.md', 'data.yaml', 'schema.json', 'tests.yaml'] as const;
 
@@ -27,10 +18,6 @@ export function listModules(): string[] {
 
 export function readYaml(path: string): unknown {
   return parse(readFileSync(path, 'utf8'));
-}
-
-export function readJson(path: string): unknown {
-  return JSON.parse(readFileSync(path, 'utf8'));
 }
 
 export function moduleFile(module: string, file: (typeof MODULE_FILES)[number]): string {
@@ -49,20 +36,6 @@ export interface ErrorDefinition {
 export function readErrors(): readonly ErrorDefinition[] {
   return readYaml(join(SPEC_DIR, 'errors.yaml')) as ErrorDefinition[];
 }
-
-export interface TestVector {
-  readonly fn?: string;
-  readonly input: unknown;
-  readonly args?: readonly unknown[];
-  readonly expected?: unknown;
-  readonly error?: string;
-  readonly note?: string;
-}
-
-export function readTestVectors(module: string): readonly TestVector[] {
-  return readYaml(moduleFile(module, 'tests.yaml')) as TestVector[];
-}
-
 
 const PROVENANCE_KEYS = new Set(['source', 'checked', 'note']);
 
