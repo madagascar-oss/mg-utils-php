@@ -55,19 +55,29 @@ final class NumberWords
         return implode(" {$joiner} ", array_values(array_filter($words, static fn(string $word): bool => $word !== '')));
     }
 
-    // Malagasy reads upwards: units, then tens, then hundreds. "iray" becomes "iraika" when
-    // something follows it, and only 11–19 use "ambin' ny" (https://malagasyword.org/bins/teny2/amby).
+    // Malagasy reads upwards: units, then tens, then hundreds. The smaller part joins exactly
+    // 100 with "amby" ("dimy amby zato") and 200–900 with "sy" ("dimy sy roanjato"); "iraika"
+    // replaces "iray" only right before "ambin'ny" or "amby".
     private static function belowThousand(int $value): string
     {
         $units = self::digitAt($value, 1);
         $tens = self::digitAt($value, self::BASE);
-        $unitWord = $units === 1 && $value > 1 ? Data::UNIT_ONE_IN_COMPOUND : Data::UNIT_WORDS[$units];
-        $lowerWords = $tens === 1 && $units > 0
-            ? [\sprintf('%s %s %s', $unitWord, Data::JOINER_UNITS_BEFORE_TEN, Data::TEN_WORDS[1])]
-            : [$unitWord, Data::TEN_WORDS[$tens]];
-        $lowerWords[] = Data::HUNDRED_WORDS[self::digitAt($value, self::HUNDRED)];
+        $hundreds = self::digitAt($value, self::HUNDRED);
+        $isOneBeforeAmby = $units === 1 && ($tens > 0 || $hundreds === 1);
+        $unitWord = $isOneBeforeAmby ? Data::UNIT_ONE_IN_COMPOUND : Data::UNIT_WORDS[$units];
+        $joiner = $hundreds === 1 ? Data::JOINER_BELOW_THOUSAND : Data::JOINER_BETWEEN_GROUPS;
 
-        return self::join($lowerWords, Data::JOINER_BELOW_THOUSAND);
+        return self::join([self::belowHundred($unitWord, $units, $tens), Data::HUNDRED_WORDS[$hundreds]], $joiner);
+    }
+
+    // 11–19 join with "ambin'ny"; other units join tens with "amby".
+    private static function belowHundred(string $unitWord, int $units, int $tens): string
+    {
+        if ($tens === 1 && $units > 0) {
+            return \sprintf('%s %s %s', $unitWord, Data::JOINER_UNITS_BEFORE_TEN, Data::TEN_WORDS[1]);
+        }
+
+        return self::join([$unitWord, Data::TEN_WORDS[$tens]], Data::JOINER_BELOW_THOUSAND);
     }
 
     /**
