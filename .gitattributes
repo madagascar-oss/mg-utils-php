@@ -14,6 +14,7 @@
 /package.json export-ignore
 /spec export-ignore
 /.gitmodules export-ignore
+/.github export-ignore
 /pnpm-lock.yaml export-ignore
 /tsconfig.json export-ignore
 /tsconfig.base.json export-ignore
