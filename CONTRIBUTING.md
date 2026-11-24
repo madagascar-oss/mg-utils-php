@@ -39,3 +39,8 @@ Branch from `dev` as `<type>/<short-name>`, open the PR against `dev`; PRs are s
 with a Conventional Commit title. To release, merge `dev` into `main`, then tag `main` as
 `vX.Y.Z`; Packagist picks up the tag. Update "Implements spec x.y.z" in the README when the
 spec submodule moves.
+
+## Code rules
+
+See [docs/CODING.md](docs/CODING.md). Most rules are enforced by tools, so CI tells you before
+a reviewer does.

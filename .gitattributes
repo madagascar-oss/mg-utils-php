@@ -25,3 +25,4 @@
 /.markdownlint.yaml export-ignore
 /.yamllint.yaml export-ignore
 /renovate.json export-ignore
+/docs export-ignore
