@@ -16,7 +16,7 @@ $toDate = static fn(mixed $date): MalagasyDate => is_array($date)
 
 return [
     'formatDate' => static fn(mixed $date, ?string $style = null): string => $toDate($date)
-        ->format($style === null ? DateStyle::DEFAULT : DateStyle::from($style)),
+        ->format($style === null ? null : DateStyle::from($style)),
     'getMonthName' => static fn(mixed $month, ?string $width = null): string => MalagasyDate::monthName(
         // @phpstan-ignore argument.type
         $month,

@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Date;
 
 /**
- * How `MalagasyDate::format()` writes a date.
+ * How `MalagasyDate::format()` writes a date. The first case is the default.
  *
  * Example: `MalagasyDate::fromString('2026-11-23')->format(DateStyle::Full)` returns
  * `'Alatsinainy 23 Novambra 2026'`.
@@ -19,9 +19,6 @@ enum DateStyle: string
     case Medium = 'medium';
     case Short = 'short';
     case Numeric = 'numeric';
-
-    /** The style used when none is given: the first one in the spec. */
-    public const self DEFAULT = self::Long;
 
     /**
      * The CLDR pattern of this style, e.g. `d MMMM y` for `DateStyle::Long`.

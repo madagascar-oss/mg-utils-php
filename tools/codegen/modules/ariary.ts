@@ -65,9 +65,6 @@ enum Grouping: string
 {
 ${cases}
 
-    /** The grouping used when none is given: the first one in the spec. */
-    public const self DEFAULT = self::${pascalCase(separators[0]?.[0] ?? '')};
-
     /**
      * The separator character, e.g. a no-break space for \`Grouping::Space\`.
      */

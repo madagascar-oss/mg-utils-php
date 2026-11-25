@@ -10,11 +10,11 @@ use Madagascar\MgUtils\Ariary\SymbolPosition;
  * Spec options `{grouping, symbolPosition}` → PHP enums. Unknown names raise ValueError,
  * which this port reports as INVALID_TYPE (docs/adr/0002).
  *
- * @return array{Grouping, SymbolPosition}
+ * @return array{?Grouping, SymbolPosition}
  */
 $layout = static fn(array $options): array => [
     // @phpstan-ignore argument.type
-    isset($options['grouping']) ? Grouping::from($options['grouping']) : Grouping::DEFAULT,
+    isset($options['grouping']) ? Grouping::from($options['grouping']) : null,
     // @phpstan-ignore argument.type
     SymbolPosition::from($options['symbolPosition'] ?? SymbolPosition::Before->value),
 ];

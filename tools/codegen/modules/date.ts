@@ -64,7 +64,7 @@ function dateStyleEnum(styles: readonly (readonly [string, string])[]): string {
   return phpFile(
     `${ROOT_NAMESPACE}\\Date`,
     `/**
- * How \`MalagasyDate::format()\` writes a date.
+ * How \`MalagasyDate::format()\` writes a date. The first case is the default.
  *
  * Example: \`MalagasyDate::fromString('2026-11-23')->format(DateStyle::Full)\` returns
  * \`'Alatsinainy 23 Novambra 2026'\`.
@@ -72,9 +72,6 @@ function dateStyleEnum(styles: readonly (readonly [string, string])[]): string {
 enum DateStyle: string
 {
 ${cases}
-
-    /** The style used when none is given: the first one in the spec. */
-    public const self DEFAULT = self::${pascalCase(styles[0]?.[0] ?? '')};
 
     /**
      * The CLDR pattern of this style, e.g. \`d MMMM y\` for \`DateStyle::Long\`.
