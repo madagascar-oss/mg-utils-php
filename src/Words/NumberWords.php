@@ -81,18 +81,20 @@ final class NumberWords
     }
 
     /**
-     * A count of one is the bare group word: "arivo", not "iray arivo".
+     * A count of one is bare only for the first group: "arivo", but "iray alina", "iray tapitrisa".
      *
      * @param array{value: int, word: string, maxCount: int} $scale
      */
     private static function scaleWords(int $value, array $scale): string
     {
         $count = intdiv($value, $scale['value']) % ($scale['maxCount'] + 1);
+        if ($count === 0) {
+            return '';
+        }
+        if ($count === 1 && $scale['value'] === Data::SCALES[0]['value']) {
+            return $scale['word'];
+        }
 
-        return match ($count) {
-            0 => '',
-            1 => $scale['word'],
-            default => self::belowThousand($count) . ' ' . $scale['word'],
-        };
+        return self::belowThousand($count) . ' ' . $scale['word'];
     }
 }

@@ -11,5 +11,5 @@ namespace Madagascar\MgUtils;
  */
 final class Spec
 {
-    public const string VERSION = '0.3.0';
+    public const string VERSION = '0.4.0';
 }
