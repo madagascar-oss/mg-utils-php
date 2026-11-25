@@ -16,6 +16,9 @@ enum Grouping: string
     case Space = 'space';
     case Dot = 'dot';
 
+    /** The grouping used when none is given: the first one in the spec. */
+    public const self DEFAULT = self::Space;
+
     /**
      * The separator character, e.g. a no-break space for `Grouping::Space`.
      */

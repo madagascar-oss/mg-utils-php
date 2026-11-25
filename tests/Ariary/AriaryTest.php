@@ -31,6 +31,11 @@ final class AriaryTest extends TestCase
         self::assertNull(Ariary::tryParse('1,500'));
     }
 
+    public function testTryParseReturnsNullForNonStrings(): void
+    {
+        self::assertNull(Ariary::tryParse(self::SAMPLE_AMOUNT));
+    }
+
     public function testSafeParseReturnsTheAmountOnSuccess(): void
     {
         $result = Ariary::safeParse(self::SAMPLE_TEXT);

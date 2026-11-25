@@ -64,11 +64,9 @@ final readonly class Ariary
      *
      * Example: `Ariary::tryParse('1,500')` returns `null`.
      */
-    public static function tryParse(string $text): ?self
+    public static function tryParse(mixed $text): ?self
     {
-        $amount = AmountText::read($text);
-
-        return \is_int($amount) ? new self($amount) : null;
+        return self::safeParse($text)->data;
     }
 
     /**
@@ -112,7 +110,7 @@ final readonly class Ariary
      *
      * @throws MgUtilsException with `ErrorCode::OutOfRange`
      */
-    public static function formatFmg(int $francs, ?Grouping $grouping = null, SymbolPosition $position = SymbolPosition::Before): string
+    public static function formatFmg(int $francs, Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before): string
     {
         self::assertInRange($francs, Data::MAX_AMOUNT * Data::FRANCS_PER_ARIARY);
 
@@ -124,7 +122,7 @@ final readonly class Ariary
      *
      * Example: `Ariary::fromInt(1500)->format(Grouping::Dot, SymbolPosition::After)` returns `'1.500 Ar'`.
      */
-    public function format(?Grouping $grouping = null, SymbolPosition $position = SymbolPosition::Before): string
+    public function format(Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before): string
     {
         return self::layOut($this->amount, Data::CURRENCY_SYMBOL, $grouping, $position);
     }
@@ -156,9 +154,9 @@ final readonly class Ariary
         }
     }
 
-    private static function layOut(int $value, string $symbol, ?Grouping $grouping, SymbolPosition $position): string
+    private static function layOut(int $value, string $symbol, Grouping $grouping, SymbolPosition $position): string
     {
-        $separator = ($grouping ?? Grouping::cases()[0])->separator();
+        $separator = $grouping->separator();
         // Split from the right: reverse, cut into groups, then restore each group and their order.
         $groups = array_map(strrev(...), array_reverse(str_split(strrev((string) $value), Data::GROUP_SIZE)));
         $digits = implode($separator, $groups);
