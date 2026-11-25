@@ -57,11 +57,9 @@ final readonly class PhoneNumber
      *
      * Example: `PhoneNumber::tryParse('035 12 345 67')` returns `null`.
      */
-    public static function tryParse(string $input): ?self
+    public static function tryParse(mixed $input): ?self
     {
-        $result = self::read($input);
-
-        return $result instanceof self ? $result : null;
+        return self::safeParse($input)->data;
     }
 
     /**
