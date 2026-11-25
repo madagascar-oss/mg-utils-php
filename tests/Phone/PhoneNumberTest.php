@@ -32,6 +32,11 @@ final class PhoneNumberTest extends TestCase
         self::assertNull(PhoneNumber::tryParse('035 12 345 67'));
     }
 
+    public function testTryParseReturnsNullForNonStrings(): void
+    {
+        self::assertNull(PhoneNumber::tryParse(self::NUMBER_NOT_A_STRING));
+    }
+
     public function testSafeParseReturnsThePhoneNumberOnSuccess(): void
     {
         $result = PhoneNumber::safeParse('034 12 345 67');
