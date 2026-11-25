@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Date\Generated;
 
 /**
- * Lookup tables from spec/modules/date/data.yaml (spec 0.3.0).
+ * Lookup tables from spec/modules/date/data.yaml (spec 0.4.0).
  *
  * @internal
  */
