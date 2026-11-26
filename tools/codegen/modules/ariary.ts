@@ -10,7 +10,7 @@ interface AriaryData {
   readonly readableSeparators: Sourced<string>;
   readonly currencyTokens: Sourced<string>;
   readonly legacyFranc: { readonly symbol: string; readonly francsPerAriary: number };
-  readonly limits: { readonly min: number; readonly max: number };
+  readonly limits: { readonly min: number };
 }
 
 interface AriaryTables {
@@ -26,7 +26,6 @@ interface AriaryTables {
   readonly francSymbol: string;
   readonly francsPerAriary: number;
   readonly minAmount: number;
-  readonly maxAmount: number;
 }
 
 function ariaryTables(data: AriaryData): AriaryTables {
@@ -43,7 +42,6 @@ function ariaryTables(data: AriaryData): AriaryTables {
     francSymbol: data.legacyFranc.symbol,
     francsPerAriary: data.legacyFranc.francsPerAriary,
     minAmount: data.limits.min,
-    maxAmount: data.limits.max,
   };
 }
 
@@ -108,7 +106,6 @@ export function emit(data: AriaryData, source: string): PhpOutput[] {
           { name: 'FRANC_SYMBOL', type: 'string', value: tables.francSymbol },
           { name: 'FRANCS_PER_ARIARY', type: 'int', value: tables.francsPerAriary },
           { name: 'MIN_AMOUNT', type: 'int', value: tables.minAmount },
-          { name: 'MAX_AMOUNT', type: 'int', value: tables.maxAmount },
         ],
         source,
       ),

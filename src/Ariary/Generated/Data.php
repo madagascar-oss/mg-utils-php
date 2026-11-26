@@ -41,6 +41,4 @@ final class Data
     public const int FRANCS_PER_ARIARY = 5;
 
     public const int MIN_AMOUNT = 0;
-
-    public const int MAX_AMOUNT = 999999999999;
 }

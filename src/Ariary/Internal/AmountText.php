@@ -35,8 +35,11 @@ final class AmountText
         if ($digits === null) {
             return new MgUtilsException(ErrorCode::InvalidFormat, 'Expected an amount such as Ar 1 500 (no commas, no decimals).');
         }
-        if (\strlen($digits) > \strlen((string) Data::MAX_AMOUNT) || (int) $digits > Data::MAX_AMOUNT) {
-            return new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts go up to %d.', Data::MAX_AMOUNT));
+        // Compared as text: (int) would silently clamp a longer number to PHP_INT_MAX. The
+        // digits have no leading zeros, so a longer string is always a larger number.
+        $max = (string) PHP_INT_MAX;
+        if (\strlen($digits) > \strlen($max) || (\strlen($digits) === \strlen($max) && strcmp($digits, $max) > 0)) {
+            return new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts go up to %s.', $max));
         }
 
         return (int) $digits;

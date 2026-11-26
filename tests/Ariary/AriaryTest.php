@@ -17,7 +17,12 @@ final class AriaryTest extends TestCase
     private const int FUZZ_RUNS = 2000;
     private const int FUZZ_MAX_INPUT_LENGTH = 20;
     // Largest supported amount (spec/modules/ariary/data.yaml limits.max).
-    private const int LARGEST_SUPPORTED_AMOUNT = 999_999_999_999;
+    // The spec sets no max: amounts stop where an int stops.
+    private const int LARGEST_SUPPORTED_AMOUNT = PHP_INT_MAX;
+    // PHP_INT_MAX + 1 on 64-bit, written as text because no int can hold it.
+    private const string FIRST_AMOUNT_TOO_LARGE = '9 223 372 036 854 775 808';
+    private const string LONGER_THAN_ANY_INT = '10 000 000 000 000 000 000';
+    private const string LARGEST_AMOUNT_TEXT = 'Ar 9 223 372 036 854 775 807';
     private const string SAMPLE_TEXT = '1 500 Ar';
     private const int SAMPLE_AMOUNT = 1500;
 
@@ -93,6 +98,27 @@ final class AriaryTest extends TestCase
             }
 
             self::assertThat(Ariary::tryParse($text), self::logicalOr(self::isNull(), self::isInstanceOf(Ariary::class)));
+        }
+    }
+
+    public function testReadsPhpIntMax(): void
+    {
+        self::assertSame(PHP_INT_MAX, Ariary::parse(self::LARGEST_AMOUNT_TEXT)->amount);
+    }
+
+    public function testRejectsAmountsAbovePhpIntMaxAsOutOfRange(): void
+    {
+        self::assertSame(ErrorCode::OutOfRange, Ariary::safeParse(self::FIRST_AMOUNT_TOO_LARGE)->error?->errorCode);
+        self::assertSame(ErrorCode::OutOfRange, Ariary::safeParse(self::LONGER_THAN_ANY_INT)->error?->errorCode);
+    }
+
+    public function testToFmgRejectsFrancsAbovePhpIntMax(): void
+    {
+        try {
+            Ariary::fromInt(PHP_INT_MAX)->toFmg();
+            self::fail('Expected MgUtilsException');
+        } catch (MgUtilsException $exception) {
+            self::assertSame(ErrorCode::OutOfRange, $exception->errorCode);
         }
     }
 }

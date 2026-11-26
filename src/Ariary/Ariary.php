@@ -29,15 +29,15 @@ final readonly class Ariary
     ) {}
 
     /**
-     * An amount in whole ariary, from 0 to 999 999 999 999.
+     * An amount in whole ariary, from 0 to PHP_INT_MAX (the spec sets no maximum).
      *
      * Example: `Ariary::fromInt(1500)->amount` is `1500`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange`
+     * @throws MgUtilsException with `ErrorCode::OutOfRange` below 0
      */
     public static function fromInt(int $amount): self
     {
-        self::assertInRange($amount, Data::MAX_AMOUNT);
+        self::assertNotNegative($amount);
 
         return new self($amount);
     }
@@ -95,7 +95,7 @@ final readonly class Ariary
      */
     public static function fromFmg(int $francs): self
     {
-        self::assertInRange($francs, Data::MAX_AMOUNT * Data::FRANCS_PER_ARIARY);
+        self::assertNotNegative($francs);
         if ($francs % Data::FRANCS_PER_ARIARY !== 0) {
             throw new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Only multiples of %d FMG convert to whole ariary.', Data::FRANCS_PER_ARIARY));
         }
@@ -112,7 +112,7 @@ final readonly class Ariary
      */
     public static function formatFmg(int $francs, Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before): string
     {
-        self::assertInRange($francs, Data::MAX_AMOUNT * Data::FRANCS_PER_ARIARY);
+        self::assertNotNegative($francs);
 
         return self::layOut($francs, Data::FRANC_SYMBOL, $grouping, $position);
     }
@@ -141,16 +141,24 @@ final readonly class Ariary
      * The amount in old Malagasy francs: 1 Ar = 5 FMG.
      *
      * Example: `Ariary::fromInt(1500)->toFmg()` returns `7500`.
+     *
+     * @throws MgUtilsException with `ErrorCode::OutOfRange` when the francs would exceed PHP_INT_MAX
      */
     public function toFmg(): int
     {
+        $max = intdiv(PHP_INT_MAX, Data::FRANCS_PER_ARIARY);
+        if ($this->amount > $max) {
+            throw new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts in francs go up to %d ariary.', $max));
+        }
+
         return $this->amount * Data::FRANCS_PER_ARIARY;
     }
 
-    private static function assertInRange(int $value, int $max): void
+    // No upper check: the spec sets no maximum, and an int stops at PHP_INT_MAX by itself.
+    private static function assertNotNegative(int $value): void
     {
-        if ($value < Data::MIN_AMOUNT || $value > $max) {
-            throw new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts go from %d to %d.', Data::MIN_AMOUNT, $max));
+        if ($value < Data::MIN_AMOUNT) {
+            throw new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts start at %d.', Data::MIN_AMOUNT));
         }
     }
 
