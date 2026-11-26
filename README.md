@@ -78,3 +78,7 @@ Rules, sources and recorded disagreements:
 
 Data or vector changes go to [mdg-utils-spec](https://github.com/mdgascar/mdg-utils-spec)
 first. Code changes: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+[MIT](LICENSE)
