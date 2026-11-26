@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Date;
+namespace Mdgascar\MdgUtils\Date;
 
 /**
  * Width of a month or weekday name.

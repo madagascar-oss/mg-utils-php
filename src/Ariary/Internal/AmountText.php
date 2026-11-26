@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Ariary\Internal;
+namespace Mdgascar\MdgUtils\Ariary\Internal;
 
-use Madagascar\MgUtils\Ariary\Generated\Data;
-use Madagascar\MgUtils\ErrorCode;
-use Madagascar\MgUtils\MgUtilsException;
+use Mdgascar\MdgUtils\Ariary\Generated\Data;
+use Mdgascar\MdgUtils\ErrorCode;
+use Mdgascar\MdgUtils\MdgUtilsException;
 
 /**
  * Reads amounts typed by users. Patterns are built once from the spec data.
@@ -37,16 +37,16 @@ final class AmountText
      * @param ?string          $grouping the grouping character, or null for every Malagasy one
      * @param non-empty-string $decimal  the decimal character
      */
-    public static function read(string $text, ?string $grouping, string $decimal): string|MgUtilsException
+    public static function read(string $text, ?string $grouping, string $decimal): string|MdgUtilsException
     {
         $length = preg_match_all('/./su', $text);
         if ($length === false || $length > self::MAX_INPUT_LENGTH) {
-            return new MgUtilsException(ErrorCode::InvalidFormat, \sprintf('Amounts are at most %d characters of valid text.', self::MAX_INPUT_LENGTH));
+            return new MdgUtilsException(ErrorCode::InvalidFormat, \sprintf('Amounts are at most %d characters of valid text.', self::MAX_INPUT_LENGTH));
         }
         $amount = self::stripCurrency(self::trim($text));
         $digits = $amount === null ? null : self::digits($amount, self::patterns(self::groupingCharacters($grouping, $decimal)), $decimal);
 
-        return $digits ?? new MgUtilsException(ErrorCode::InvalidFormat, 'Expected an amount such as Ar 1 500 or Ar 1 500,50.');
+        return $digits ?? new MdgUtilsException(ErrorCode::InvalidFormat, 'Expected an amount such as Ar 1 500 or Ar 1 500,50.');
     }
 
     /**

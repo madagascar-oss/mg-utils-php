@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Benchmarks;
+namespace Mdgascar\MdgUtils\Benchmarks;
 
-use Madagascar\MgUtils\Words\NumberWords;
+use Mdgascar\MdgUtils\Words\NumberWords;
 
 final class NumberWordsBench
 {

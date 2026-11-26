@@ -11,7 +11,7 @@
          beStrictAboutOutputDuringTests="true"
          beStrictAboutCoverageMetadata="false">
     <testsuites>
-        <testsuite name="mg-utils">
+        <testsuite name="mdg-utils">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   lint:
-    uses: madagascar-oss/.github/.github/workflows/reusable-lint.yml@0610e49630c07c4854ea85312207c26722fc1437 # main
+    uses: mdgascar/.github/.github/workflows/reusable-lint.yml@0610e49630c07c4854ea85312207c26722fc1437 # main
 
   codegen:
     name: Codegen drift
@@ -49,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         # Versions under active or security support: https://www.php.net/supported-versions.php
-        php: ['8.3', '8.4', '8.5']
+        php: ["8.3", "8.4", "8.5"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils;
+namespace Mdgascar\MdgUtils;
 
 /**
  * The shared spec this package implements.

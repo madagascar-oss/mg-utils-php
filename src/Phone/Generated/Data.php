@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Phone\Generated;
+namespace Mdgascar\MdgUtils\Phone\Generated;
 
 /**
  * Lookup tables from spec/modules/phone/data.yaml (spec 0.5.0).

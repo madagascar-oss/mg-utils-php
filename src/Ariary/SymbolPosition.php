@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Ariary;
+namespace Mdgascar\MdgUtils\Ariary;
 
 /**
  * Where the currency symbol goes when formatting.

@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Ariary;
+namespace Mdgascar\MdgUtils\Ariary;
 
 /**
  * Decimal separator for formatting and reading amounts. Madagascar uses a comma; `Dot` is

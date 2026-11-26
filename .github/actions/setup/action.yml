@@ -1,9 +1,9 @@
-name: Set up mg-utils-php codegen
+name: Set up mdg-utils-php codegen
 description: Install pnpm, Node.js and dependencies from the lockfile.
 inputs:
   node-version:
     description: Node.js version
-    default: '24'
+    default: "24"
 runs:
   using: composite
   steps:

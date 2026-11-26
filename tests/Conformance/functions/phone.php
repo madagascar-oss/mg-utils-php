@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Madagascar\MgUtils\Phone\PhoneNumber;
-use Madagascar\MgUtils\Phone\PhoneNumberFormat;
+use Mdgascar\MdgUtils\Phone\PhoneNumber;
+use Mdgascar\MdgUtils\Phone\PhoneNumberFormat;
 
 /**
  * @return array{e164: string, nationalNumber: string, operator: string}

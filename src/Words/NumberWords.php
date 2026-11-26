@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Words;
+namespace Mdgascar\MdgUtils\Words;
 
-use Madagascar\MgUtils\ErrorCode;
-use Madagascar\MgUtils\Internal\DecimalText;
-use Madagascar\MgUtils\MgUtilsException;
-use Madagascar\MgUtils\Words\Generated\Data;
+use Mdgascar\MdgUtils\ErrorCode;
+use Mdgascar\MdgUtils\Internal\DecimalText;
+use Mdgascar\MdgUtils\MdgUtilsException;
+use Mdgascar\MdgUtils\Words\Generated\Data;
 
 /**
  * Malagasy number words.
@@ -26,7 +26,7 @@ final class NumberWords
      *
      * Example: `NumberWords::fromInt(2026)` returns `'enina amby roapolo sy roa arivo'`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange` below 0
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0
      */
     public static function fromInt(int $value): string
     {
@@ -44,13 +44,13 @@ final class NumberWords
      *
      * Example: `NumberWords::fromFloat(3.14)` returns `"telo faingo efatra ambin'ny folo"`.
      *
-     * @throws MgUtilsException with `ErrorCode::InvalidType` for NAN or INF,
+     * @throws MdgUtilsException with `ErrorCode::InvalidType` for NAN or INF,
      *                          `ErrorCode::OutOfRange` below 0 or above 9 007 199 254 740 991
      */
     public static function fromFloat(float $value): string
     {
         if (!is_finite($value)) {
-            throw new MgUtilsException(ErrorCode::InvalidType, 'NumberWords expects a finite number.');
+            throw new MdgUtilsException(ErrorCode::InvalidType, 'NumberWords expects a finite number.');
         }
         if ($value < Data::MIN_VALUE || $value > DecimalText::MAX_EXACT_FLOAT_INTEGER) {
             throw self::outOfRange(DecimalText::MAX_EXACT_FLOAT_INTEGER);
@@ -64,9 +64,9 @@ final class NumberWords
         return \sprintf('%s %s %s', $words, Data::DECIMAL_SEPARATOR, self::decimalWords($parts[1]));
     }
 
-    private static function outOfRange(int $max): MgUtilsException
+    private static function outOfRange(int $max): MdgUtilsException
     {
-        return new MgUtilsException(
+        return new MdgUtilsException(
             ErrorCode::OutOfRange,
             \sprintf('NumberWords supports %d to %d.', Data::MIN_VALUE, $max),
         );

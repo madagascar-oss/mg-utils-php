@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Date;
+namespace Mdgascar\MdgUtils\Date;
 
-use Madagascar\MgUtils\Date\Generated\Data;
-use Madagascar\MgUtils\ErrorCode;
-use Madagascar\MgUtils\MgUtilsException;
+use Mdgascar\MdgUtils\Date\Generated\Data;
+use Mdgascar\MdgUtils\ErrorCode;
+use Mdgascar\MdgUtils\MdgUtilsException;
 
 /**
  * A calendar date written in Malagasy.
@@ -38,12 +38,12 @@ final readonly class MalagasyDate
      *
      * Example: `MalagasyDate::fromString('1960-06-26')->month` is `6`.
      *
-     * @throws MgUtilsException with `ErrorCode::InvalidFormat` for other text or a day that does not exist, `ErrorCode::OutOfRange` outside years 1–9999
+     * @throws MdgUtilsException with `ErrorCode::InvalidFormat` for other text or a day that does not exist, `ErrorCode::OutOfRange` outside years 1–9999
      */
     public static function fromString(string $text): self
     {
         if (preg_match(self::ISO_DATE, $text, $match) !== 1) {
-            throw new MgUtilsException(ErrorCode::InvalidFormat, 'Expected a date as YYYY-MM-DD.');
+            throw new MdgUtilsException(ErrorCode::InvalidFormat, 'Expected a date as YYYY-MM-DD.');
         }
 
         return self::checked((int) $match['year'], (int) $match['month'], (int) $match['day'], ErrorCode::InvalidFormat);
@@ -54,7 +54,7 @@ final readonly class MalagasyDate
      *
      * Example: `MalagasyDate::fromParts(1960, 6, 26)->format(DateStyle::Full)` returns `'Alahady 26 Jona 1960'`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange` for a day that does not exist or a year outside 1–9999
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` for a day that does not exist or a year outside 1–9999
      */
     public static function fromParts(int $year, int $month, int $day): self
     {
@@ -66,7 +66,7 @@ final readonly class MalagasyDate
      *
      * Example: `MalagasyDate::fromDateTime(new DateTimeImmutable('2026-11-23'))->day` is `23`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange` outside years 1–9999
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` outside years 1–9999
      */
     public static function fromDateTime(\DateTimeInterface $date): self
     {
@@ -78,7 +78,7 @@ final readonly class MalagasyDate
      *
      * Example: `MalagasyDate::monthName(11, NameWidth::Abbreviated)` returns `'Nov'`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange` outside 1–12
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` outside 1–12
      */
     public static function monthName(int $month, NameWidth $width = NameWidth::Wide): string
     {
@@ -92,7 +92,7 @@ final readonly class MalagasyDate
      *
      * Example: `MalagasyDate::weekdayName(1)` returns `'Alatsinainy'`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange` outside 1–7
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` outside 1–7
      */
     public static function weekdayName(int $isoWeekday, NameWidth $width = NameWidth::Wide): string
     {
@@ -138,10 +138,10 @@ final readonly class MalagasyDate
     private static function checked(int $year, int $month, int $day, ErrorCode $impossibleDate): self
     {
         if ($year < Data::MIN_YEAR || $year > Data::MAX_YEAR) {
-            throw new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Years go from %d to %d.', Data::MIN_YEAR, Data::MAX_YEAR));
+            throw new MdgUtilsException(ErrorCode::OutOfRange, \sprintf('Years go from %d to %d.', Data::MIN_YEAR, Data::MAX_YEAR));
         }
         if (!checkdate($month, $day, $year)) {
-            throw new MgUtilsException($impossibleDate, 'This day does not exist.');
+            throw new MdgUtilsException($impossibleDate, 'This day does not exist.');
         }
 
         return new self($year, $month, $day);
@@ -150,7 +150,7 @@ final readonly class MalagasyDate
     private static function assertNumber(int $value, int $last, string $what): int
     {
         if ($value < 1 || $value > $last) {
-            throw new MgUtilsException(ErrorCode::OutOfRange, \sprintf('%s numbers go from 1 to %d.', $what, $last));
+            throw new MdgUtilsException(ErrorCode::OutOfRange, \sprintf('%s numbers go from 1 to %d.', $what, $last));
         }
 
         return $value;

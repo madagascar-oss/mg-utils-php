@@ -17,7 +17,7 @@ body:
     id: language
     attributes:
       label: Package and PHP version
-      placeholder: 'madagascar-oss/mg-utils 0.2.0, PHP 8.4'
+      placeholder: "mdgascar/mdg-utils 0.2.0, PHP 8.4"
     validations:
       required: true
   - type: textarea

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Tests\Date;
+namespace Mdgascar\MdgUtils\Tests\Date;
 
-use Madagascar\MgUtils\Date\DateStyle;
-use Madagascar\MgUtils\Date\MalagasyDate;
+use Mdgascar\MdgUtils\Date\DateStyle;
+use Mdgascar\MdgUtils\Date\MalagasyDate;
 use PHPUnit\Framework\TestCase;
 
 final class MalagasyDateTest extends TestCase

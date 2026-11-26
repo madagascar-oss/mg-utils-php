@@ -1,9 +1,9 @@
-name: Set up mg-utils PHP
+name: Set up mdg-utils PHP
 description: Install PHP with Xdebug and resolve dev dependencies for that PHP version.
 inputs:
   php-version:
     description: PHP version
-    default: '8.3'
+    default: "8.3"
 runs:
   using: composite
   steps:

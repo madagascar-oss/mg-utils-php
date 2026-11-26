@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Wrong data, new helper, new module or new language
-    url: https://github.com/madagascar-oss/mg-utils-spec/issues/new/choose
+    url: https://github.com/mdgascar/mdg-utils-spec/issues/new/choose
     about: Data and behaviour are decided in the spec first.
   - name: Security vulnerability
-    url: https://github.com/madagascar-oss/mg-utils-php/security/advisories/new
+    url: https://github.com/mdgascar/mdg-utils-php/security/advisories/new
     about: Report security issues privately, never in a public issue.

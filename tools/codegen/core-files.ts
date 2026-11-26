@@ -1,6 +1,12 @@
 // The generated files shared by every module: src/ErrorCode.php and src/Spec.php.
-import type { ErrorDefinition } from '../lib/spec.ts';
-import { INDENT, ROOT_NAMESPACE, constantCase, phpFile, phpString } from './emit.ts';
+import type { ErrorDefinition } from "../lib/spec.ts";
+import {
+  INDENT,
+  ROOT_NAMESPACE,
+  constantCase,
+  phpFile,
+  phpString,
+} from "./emit.ts";
 
 export function errorCodeFile(errors: readonly ErrorDefinition[]): string {
   const cases = errors.map(
@@ -9,7 +15,7 @@ export function errorCodeFile(errors: readonly ErrorDefinition[]): string {
   );
   return phpFile(
     ROOT_NAMESPACE,
-    `/**\n * Error code shared by every mg-utils language port.\n */\nenum ErrorCode: string\n{\n${cases.join('\n\n')}\n}`,
+    `/**\n * Error code shared by every mdg-utils language port.\n */\nenum ErrorCode: string\n{\n${cases.join("\n\n")}\n}`,
   );
 }
 

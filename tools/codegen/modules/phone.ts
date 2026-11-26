@@ -1,6 +1,12 @@
 // phone: spec data → lookup tables → PHP files.
-import type { PhpOutput } from './shared.ts';
-import { dataClass, pascalCase, phpFile, phpLiteral, ROOT_NAMESPACE } from '../emit.ts';
+import type { PhpOutput } from "./shared.ts";
+import {
+  dataClass,
+  pascalCase,
+  phpFile,
+  phpLiteral,
+  ROOT_NAMESPACE,
+} from "../emit.ts";
 
 interface PhoneData {
   readonly plan: {
@@ -30,7 +36,9 @@ interface PhoneTables {
 
 function phoneTables(data: PhoneData): PhoneTables {
   const operatorByPrefix = data.operators
-    .flatMap((operator) => operator.prefixes.map((prefix) => [prefix, operator.id] as const))
+    .flatMap((operator) =>
+      operator.prefixes.map((prefix) => [prefix, operator.id] as const),
+    )
     .sort(([left], [right]) => left.localeCompare(right));
   return {
     countryCode: data.plan.countryCode,
@@ -44,13 +52,18 @@ function phoneTables(data: PhoneData): PhoneTables {
   };
 }
 
-function operatorEnum(operators: readonly { id: string; name: string }[]): string {
+function operatorEnum(
+  operators: readonly { id: string; name: string }[],
+): string {
   const cases = operators
     .map((op) => `    case ${pascalCase(op.id)} = ${phpLiteral(op.id)};`)
-    .join('\n');
+    .join("\n");
   const names = operators
-    .map((op) => `            self::${pascalCase(op.id)} => ${phpLiteral(op.name)},`)
-    .join('\n');
+    .map(
+      (op) =>
+        `            self::${pascalCase(op.id)} => ${phpLiteral(op.name)},`,
+    )
+    .join("\n");
   return phpFile(
     `${ROOT_NAMESPACE}\\Phone`,
     `/**
@@ -79,27 +92,44 @@ export function emit(data: PhoneData, source: string): PhpOutput[] {
   const tables = phoneTables(data);
   return [
     {
-      path: 'Phone/Generated/Data.php',
+      path: "Phone/Generated/Data.php",
       source: dataClass(
         `${ROOT_NAMESPACE}\\Phone\\Generated`,
         [
-          { name: 'COUNTRY_CODE', type: 'string', value: tables.countryCode },
-          { name: 'INTERNATIONAL_PREFIX', type: 'string', value: tables.internationalPrefix },
-          { name: 'TRUNK_PREFIX', type: 'string', value: tables.trunkPrefix },
-          { name: 'NATIONAL_NUMBER_LENGTH', type: 'int', value: tables.nationalNumberLength },
-          { name: 'GROUPING', type: 'array', value: tables.grouping, varDoc: 'list<int>' },
+          { name: "COUNTRY_CODE", type: "string", value: tables.countryCode },
           {
-            name: 'OPERATOR_BY_PREFIX',
-            type: 'array',
+            name: "INTERNATIONAL_PREFIX",
+            type: "string",
+            value: tables.internationalPrefix,
+          },
+          { name: "TRUNK_PREFIX", type: "string", value: tables.trunkPrefix },
+          {
+            name: "NATIONAL_NUMBER_LENGTH",
+            type: "int",
+            value: tables.nationalNumberLength,
+          },
+          {
+            name: "GROUPING",
+            type: "array",
+            value: tables.grouping,
+            varDoc: "list<int>",
+          },
+          {
+            name: "OPERATOR_BY_PREFIX",
+            type: "array",
             value: Object.fromEntries(tables.operatorByPrefix),
             // PHP stores numeric-string keys such as '34' as integers.
-            varDoc: 'array<int|string, string>',
+            varDoc: "array<int|string, string>",
           },
-          { name: 'OPERATOR_PREFIX_LENGTH', type: 'int', value: tables.operatorPrefixLength },
+          {
+            name: "OPERATOR_PREFIX_LENGTH",
+            type: "int",
+            value: tables.operatorPrefixLength,
+          },
         ],
         source,
       ),
     },
-    { path: 'Phone/Operator.php', source: operatorEnum(tables.operators) },
+    { path: "Phone/Operator.php", source: operatorEnum(tables.operators) },
   ];
 }

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Tests\Ariary;
+namespace Mdgascar\MdgUtils\Tests\Ariary;
 
-use Madagascar\MgUtils\Ariary\Ariary;
-use Madagascar\MgUtils\Ariary\DecimalSeparator;
-use Madagascar\MgUtils\Ariary\Grouping;
-use Madagascar\MgUtils\Ariary\SymbolPosition;
-use Madagascar\MgUtils\ErrorCode;
-use Madagascar\MgUtils\Internal\DecimalText;
-use Madagascar\MgUtils\MgUtilsException;
+use Mdgascar\MdgUtils\Ariary\Ariary;
+use Mdgascar\MdgUtils\Ariary\DecimalSeparator;
+use Mdgascar\MdgUtils\Ariary\Grouping;
+use Mdgascar\MdgUtils\Ariary\SymbolPosition;
+use Mdgascar\MdgUtils\ErrorCode;
+use Mdgascar\MdgUtils\Internal\DecimalText;
+use Mdgascar\MdgUtils\MdgUtilsException;
 use PHPUnit\Framework\TestCase;
 
 final class AriaryTest extends TestCase
@@ -75,8 +75,8 @@ final class AriaryTest extends TestCase
     {
         try {
             Ariary::parse("1\xff500");
-            self::fail('Expected MgUtilsException');
-        } catch (MgUtilsException $exception) {
+            self::fail('Expected MdgUtilsException');
+        } catch (MdgUtilsException $exception) {
             self::assertSame(ErrorCode::InvalidFormat, $exception->errorCode);
         }
     }
@@ -134,8 +134,8 @@ final class AriaryTest extends TestCase
     {
         try {
             Ariary::fromInt(PHP_INT_MAX)->toFmg();
-            self::fail('Expected MgUtilsException');
-        } catch (MgUtilsException $exception) {
+            self::fail('Expected MdgUtilsException');
+        } catch (MdgUtilsException $exception) {
             self::assertSame(ErrorCode::OutOfRange, $exception->errorCode);
         }
     }

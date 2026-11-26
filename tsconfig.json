@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "ES2023"
-    ],
+    "lib": ["ES2023"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true,
@@ -25,15 +23,8 @@
     "forceConsistentCasingInFileNames": true,
     "stripInternal": true,
     "noEmit": true,
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "tools/**/*.ts"
-  ],
-  "exclude": [
-    "**/node_modules/**",
-    "spec/**"
-  ]
+  "include": ["tools/**/*.ts"],
+  "exclude": ["**/node_modules/**", "spec/**"]
 }
