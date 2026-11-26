@@ -69,14 +69,14 @@ function operatorEnum(
     `/**
  * A Malagasy mobile operator, identified by the same id in every language.
  *
- * Example: \`PhoneNumber::parse('034 12 345 67')->operator === Operator::Telma\`
+ * Example: \`PhoneNumber::parse('034 12 345 67')->operator === Operator::Yas\`
  */
 enum Operator: string
 {
 ${cases}
 
     /**
-     * Display name of the operator, e.g. \`Telma\`.
+     * Display name of the operator, e.g. \`Yas Madagascar\`.
      */
     public function displayName(): string
     {
