@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Words;
 
 use Madagascar\MgUtils\ErrorCode;
+use Madagascar\MgUtils\Internal\DecimalText;
 use Madagascar\MgUtils\MgUtilsException;
 use Madagascar\MgUtils\Words\Generated\Data;
 
@@ -19,12 +20,6 @@ final class NumberWords
     private const string ONE = '1';
     private const string ZERO_DIGIT = '0';
     private const string DECIMAL_POINT = '.';
-    // Largest integer a float holds exactly next to its neighbours (JavaScript's MAX_SAFE_INTEGER).
-    private const int MAX_EXACT_FLOAT_INTEGER = 9_007_199_254_740_991;
-    // A float round-trips with at most 17 significant digits, so 16 after the first.
-    private const int MAX_FRACTION_PRECISION = 16;
-    // sprintf('%.Ne') writes digits, then 'e' and a signed exponent: '1.5e+0', '8e-3'.
-    private const string EXPONENT_MARK = 'e';
 
     /**
      * Writes a whole number in Malagasy words, smallest part first.
@@ -57,10 +52,10 @@ final class NumberWords
         if (!is_finite($value)) {
             throw new MgUtilsException(ErrorCode::InvalidType, 'NumberWords expects a finite number.');
         }
-        if ($value < Data::MIN_VALUE || $value > self::MAX_EXACT_FLOAT_INTEGER) {
-            throw self::outOfRange(self::MAX_EXACT_FLOAT_INTEGER);
+        if ($value < Data::MIN_VALUE || $value > DecimalText::MAX_EXACT_FLOAT_INTEGER) {
+            throw self::outOfRange(DecimalText::MAX_EXACT_FLOAT_INTEGER);
         }
-        $parts = explode(self::DECIMAL_POINT, self::plainDecimal($value));
+        $parts = explode(self::DECIMAL_POINT, DecimalText::plain($value));
         $words = self::wholeWords($parts[0]);
         if (!isset($parts[1])) {
             return $words;
@@ -75,31 +70,6 @@ final class NumberWords
             ErrorCode::OutOfRange,
             \sprintf('NumberWords supports %d to %d.', Data::MIN_VALUE, $max),
         );
-    }
-
-    // The shortest decimal form that reads back as the same float, never in exponent notation.
-    // It does not depend on the precision or serialize_precision ini settings.
-    private static function plainDecimal(float $value): string
-    {
-        $scientific = '';
-        for ($precision = 0; $precision <= self::MAX_FRACTION_PRECISION; ++$precision) {
-            $scientific = \sprintf("%.{$precision}e", $value);
-            if ((float) $scientific === $value) {
-                break;
-            }
-        }
-        $parts = explode(self::EXPONENT_MARK, $scientific);
-        $digits = rtrim(str_replace(self::DECIMAL_POINT, '', $parts[0]), self::ZERO_DIGIT);
-        $digits = $digits === '' ? self::ZERO_DIGIT : $digits;
-        $point = (int) ($parts[1] ?? 0) + 1;
-        if ($point <= 0) {
-            return self::ZERO_DIGIT . self::DECIMAL_POINT . str_repeat(self::ZERO_DIGIT, -$point) . $digits;
-        }
-        if ($point >= \strlen($digits)) {
-            return $digits . str_repeat(self::ZERO_DIGIT, $point - \strlen($digits));
-        }
-
-        return substr($digits, 0, $point) . self::DECIMAL_POINT . substr($digits, $point);
     }
 
     // Works on decimal digits, not arithmetic, so counts and decimals of any length stay exact.

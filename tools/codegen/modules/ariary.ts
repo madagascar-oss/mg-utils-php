@@ -5,6 +5,7 @@ import { dataClass, pascalCase, phpFile, phpLiteral, ROOT_NAMESPACE } from '../e
 interface AriaryData {
   readonly currency: { readonly code: string; readonly symbol: string; readonly word: string };
   readonly symbolSeparator: { readonly value: string };
+  readonly decimalSeparators: readonly { readonly id: string; readonly value: string }[];
   readonly grouping: { readonly size: number };
   readonly groupSeparators: readonly { readonly id: string; readonly value: string }[];
   readonly readableSeparators: Sourced<string>;
@@ -20,12 +21,26 @@ interface AriaryTables {
   readonly groupSize: number;
   /** Separator id → character; the first entry is the default. */
   readonly groupSeparators: readonly (readonly [string, string])[];
+  /** Decimal option id → character; the first entry is the default. */
+  readonly decimalSeparators: readonly (readonly [string, string])[];
   readonly readableSeparators: readonly string[];
   /** Lower-cased, longest first, so `Ariary` is tried before `Ar`. */
   readonly currencyTokens: readonly string[];
   readonly francSymbol: string;
   readonly francsPerAriary: number;
+  /** 10 ÷ francsPerAriary: dividing by it is multiplying by this, then shifting one place. */
+  readonly francDivisionFactor: number;
   readonly minAmount: number;
+}
+
+const DECIMAL_BASE = 10;
+
+/** Exact decimal division needs a rate that divides 10, such as 5 (1 Ar = 5 FMG). */
+function divisionFactor(francsPerAriary: number): number {
+  if (DECIMAL_BASE % francsPerAriary !== 0) {
+    throw new Error(`francsPerAriary ${String(francsPerAriary)} does not divide 10`);
+  }
+  return DECIMAL_BASE / francsPerAriary;
 }
 
 function ariaryTables(data: AriaryData): AriaryTables {
@@ -35,17 +50,26 @@ function ariaryTables(data: AriaryData): AriaryTables {
     symbolSeparator: data.symbolSeparator.value,
     groupSize: data.grouping.size,
     groupSeparators: data.groupSeparators.map(({ id, value }) => [id, value] as const),
+    decimalSeparators: data.decimalSeparators.map(({ id, value }) => [id, value] as const),
     readableSeparators: [...data.readableSeparators.values],
     currencyTokens: data.currencyTokens.values
       .map((token) => token.toLowerCase())
       .sort((left, right) => right.length - left.length || left.localeCompare(right)),
     francSymbol: data.legacyFranc.symbol,
     francsPerAriary: data.legacyFranc.francsPerAriary,
+    francDivisionFactor: divisionFactor(data.legacyFranc.francsPerAriary),
     minAmount: data.limits.min,
   };
 }
 
-function groupingEnum(separators: readonly (readonly [string, string])[]): string {
+interface SeparatorEnum {
+  readonly name: string;
+  readonly doc: string;
+  readonly separators: readonly (readonly [string, string])[];
+}
+
+/** A backed enum of separator options, with the default and the character of each case. */
+function separatorEnum({ name, doc, separators }: SeparatorEnum): string {
   const cases = separators
     .map(([id]) => `    case ${pascalCase(id)} = ${phpLiteral(id)};`)
     .join('\n');
@@ -55,19 +79,19 @@ function groupingEnum(separators: readonly (readonly [string, string])[]): strin
   return phpFile(
     `${ROOT_NAMESPACE}\\Ariary`,
     `/**
- * Thousand separator used when formatting amounts. Madagascar never uses a comma.
- *
- * Example: \`Ariary::fromInt(1500)->format(Grouping::Dot)\` returns \`'Ar 1.500'\`.
+${doc}
  */
-enum Grouping: string
+enum ${name}: string
 {
 ${cases}
 
-    /** The grouping used when none is given: the first one in the spec. */
+    /** The option used when none is given: the first one in the spec, the Malagasy way. */
     public const self DEFAULT = self::${pascalCase(separators[0]?.[0] ?? '')};
 
     /**
-     * The separator character, e.g. a no-break space for \`Grouping::Space\`.
+     * The separator character.
+     *
+     * @return non-empty-string
      */
     public function separator(): string
     {
@@ -78,6 +102,16 @@ ${characters}
 }`,
   );
 }
+
+const GROUPING_DOC = ` * Thousand separator for formatting and reading amounts. Madagascar uses a space or a dot;
+ * \`Comma\` is only for text in another convention (with \`DecimalSeparator::Dot\`).
+ *
+ * Example: \`Ariary::fromInt(1500)->format(Grouping::Dot)\` returns \`'Ar 1.500'\`.`;
+
+const DECIMAL_DOC = ` * Decimal separator for formatting and reading amounts. Madagascar uses a comma; \`Dot\` is
+ * only for text in another convention.
+ *
+ * Example: \`Ariary::fromFloat(1500.5)->format()\` returns \`'Ar 1 500,5'\`.`;
 
 export function emit(data: AriaryData, source: string): PhpOutput[] {
   const tables = ariaryTables(data);
@@ -105,11 +139,31 @@ export function emit(data: AriaryData, source: string): PhpOutput[] {
           },
           { name: 'FRANC_SYMBOL', type: 'string', value: tables.francSymbol },
           { name: 'FRANCS_PER_ARIARY', type: 'int', value: tables.francsPerAriary },
+          {
+            name: 'FRANC_DIVISION_FACTOR',
+            type: 'int',
+            value: tables.francDivisionFactor,
+          },
           { name: 'MIN_AMOUNT', type: 'int', value: tables.minAmount },
         ],
         source,
       ),
     },
-    { path: 'Ariary/Grouping.php', source: groupingEnum(tables.groupSeparators) },
+    {
+      path: 'Ariary/Grouping.php',
+      source: separatorEnum({
+        name: 'Grouping',
+        doc: GROUPING_DOC,
+        separators: tables.groupSeparators,
+      }),
+    },
+    {
+      path: 'Ariary/DecimalSeparator.php',
+      source: separatorEnum({
+        name: 'DecimalSeparator',
+        doc: DECIMAL_DOC,
+        separators: tables.decimalSeparators,
+      }),
+    },
   ];
 }

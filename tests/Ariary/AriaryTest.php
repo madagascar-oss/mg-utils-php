@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Tests\Ariary;
 
 use Madagascar\MgUtils\Ariary\Ariary;
+use Madagascar\MgUtils\Ariary\DecimalSeparator;
 use Madagascar\MgUtils\Ariary\Grouping;
 use Madagascar\MgUtils\Ariary\SymbolPosition;
 use Madagascar\MgUtils\ErrorCode;
+use Madagascar\MgUtils\Internal\DecimalText;
 use Madagascar\MgUtils\MgUtilsException;
 use PHPUnit\Framework\TestCase;
 
@@ -19,6 +21,11 @@ final class AriaryTest extends TestCase
     // Largest supported amount (spec/modules/ariary/data.yaml limits.max).
     // The spec sets no max: amounts stop where an int stops.
     private const int LARGEST_SUPPORTED_AMOUNT = PHP_INT_MAX;
+    private const int MAX_INPUT_LENGTH = 32;
+    // A dot is not a decimal point by default.
+    private const string DOT_DECIMAL_TEXT = '1.5';
+    // Every other run uses a decimal amount.
+    private const int DECIMAL_EVERY = 2;
     // PHP_INT_MAX + 1 on 64-bit, written as text because no int can hold it.
     private const string FIRST_AMOUNT_TOO_LARGE = '9 223 372 036 854 775 808';
     private const string LONGER_THAN_ANY_INT = '10 000 000 000 000 000 000';
@@ -33,7 +40,7 @@ final class AriaryTest extends TestCase
 
     public function testTryParseReturnsNullInsteadOfThrowing(): void
     {
-        self::assertNull(Ariary::tryParse('1,500'));
+        self::assertNull(Ariary::tryParse(self::DOT_DECIMAL_TEXT));
     }
 
     public function testTryParseReturnsNullForNonStrings(): void
@@ -52,7 +59,7 @@ final class AriaryTest extends TestCase
 
     public function testSafeParseReturnsTheErrorCodeInsteadOfThrowing(): void
     {
-        $result = Ariary::safeParse('1,500');
+        $result = Ariary::safeParse(self::DOT_DECIMAL_TEXT);
 
         self::assertFalse($result->success);
         self::assertNull($result->data);
@@ -78,11 +85,22 @@ final class AriaryTest extends TestCase
     {
         mt_srand(self::RANDOM_SEED);
         for ($run = 0; $run < self::FUZZ_RUNS; ++$run) {
-            $amount = Ariary::fromInt(mt_rand(0, self::LARGEST_SUPPORTED_AMOUNT));
+            $amount = $run % self::DECIMAL_EVERY === 0
+                ? Ariary::fromInt(mt_rand(0, self::LARGEST_SUPPORTED_AMOUNT))
+                : Ariary::fromFloat(mt_rand() / mt_getrandmax() * mt_rand(0, DecimalText::MAX_EXACT_FLOAT_INTEGER));
             $grouping = Grouping::cases()[mt_rand(0, \count(Grouping::cases()) - 1)];
+            $decimal = DecimalSeparator::cases()[mt_rand(0, \count(DecimalSeparator::cases()) - 1)];
             $position = SymbolPosition::cases()[mt_rand(0, \count(SymbolPosition::cases()) - 1)];
+            if ($grouping->separator() === $decimal->separator()) {
+                continue;
+            }
+            $text = $amount->format($grouping, $position, $decimal);
+            // Reading stops at 32 characters (ADR 0004); a tiny decimal can format longer.
+            if (mb_strlen($text) > self::MAX_INPUT_LENGTH) {
+                continue;
+            }
 
-            self::assertSame($amount->amount, Ariary::parse($amount->format($grouping, $position))->amount);
+            self::assertSame($amount->amount, Ariary::parse($text, $grouping, $decimal)->amount);
         }
     }
 
