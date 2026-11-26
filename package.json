@@ -1,5 +1,5 @@
 {
-  "name": "mg-utils-php-codegen",
+  "name": "mdg-utils-php-codegen",
   "private": true,
   "type": "module",
   "description": "Dev-only: generates PHP tables in src/ from the spec/ submodule. Not shipped to Packagist.",

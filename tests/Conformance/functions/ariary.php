@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Madagascar\MgUtils\Ariary\Ariary;
-use Madagascar\MgUtils\Ariary\DecimalSeparator;
-use Madagascar\MgUtils\Ariary\Grouping;
-use Madagascar\MgUtils\Ariary\SymbolPosition;
+use Mdgascar\MdgUtils\Ariary\Ariary;
+use Mdgascar\MdgUtils\Ariary\DecimalSeparator;
+use Mdgascar\MdgUtils\Ariary\Grouping;
+use Mdgascar\MdgUtils\Ariary\SymbolPosition;
 
 // Spec options → PHP enums. Unknown names raise ValueError, which this port reports as
 // INVALID_TYPE (docs/adr/0002).

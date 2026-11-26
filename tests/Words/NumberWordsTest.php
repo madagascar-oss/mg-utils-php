@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Tests\Words;
+namespace Mdgascar\MdgUtils\Tests\Words;
 
-use Madagascar\MgUtils\ErrorCode;
-use Madagascar\MgUtils\MgUtilsException;
-use Madagascar\MgUtils\Words\NumberWords;
+use Mdgascar\MdgUtils\ErrorCode;
+use Mdgascar\MdgUtils\MdgUtilsException;
+use Mdgascar\MdgUtils\Words\NumberWords;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -83,8 +83,8 @@ final class NumberWordsTest extends TestCase
     {
         try {
             $call();
-            self::fail('Expected MgUtilsException');
-        } catch (MgUtilsException $exception) {
+            self::fail('Expected MdgUtilsException');
+        } catch (MdgUtilsException $exception) {
             self::assertSame($code, $exception->errorCode);
         }
     }

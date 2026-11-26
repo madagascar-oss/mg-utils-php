@@ -1,20 +1,20 @@
-# Contributing to mg-utils-php
+# Contributing to mdg-utils-php
 
-The [organisation guide](https://github.com/madagascar-oss/.github/blob/main/CONTRIBUTING.md)
-and [Code of Conduct](https://github.com/madagascar-oss/.github/blob/main/CODE_OF_CONDUCT.md)
+The [organisation guide](https://github.com/mdgascar/.github/blob/main/CONTRIBUTING.md)
+and [Code of Conduct](https://github.com/mdgascar/.github/blob/main/CODE_OF_CONDUCT.md)
 apply too.
 
 ## Spec first
 
-Data and test vectors live in [mg-utils-spec](https://github.com/madagascar-oss/mg-utils-spec).
+Data and test vectors live in [mdg-utils-spec](https://github.com/mdgascar/mdg-utils-spec).
 Change them there first. Once the spec is released, Renovate opens a PR here that bumps the
 `spec/` submodule; push the code change to that PR until `just ci` passes.
 
 ## Set up
 
 ```sh
-git clone --recurse-submodules https://github.com/madagascar-oss/mg-utils-php.git
-cd mg-utils-php
+git clone --recurse-submodules https://github.com/mdgascar/mdg-utils-php.git
+cd mdg-utils-php
 just setup
 ```
 
@@ -25,11 +25,11 @@ and [just](https://just.systems).
 
 ```text
 src/<Module>/              public API; src/<Module>/Generated/ comes from codegen
-src/{ErrorCode,Spec}.php   generated; MgUtilsException.php is hand-written
+src/{ErrorCode,Spec}.php   generated; MdgUtilsException.php is hand-written
 tests/<Module>/            unit tests, mirroring src/
 tests/Conformance/         runs every spec vector; functions/ maps spec names to the PHP API
 benchmarks/                phpbench
-spec/                      mg-utils-spec, git submodule (read-only here)
+spec/                      mdg-utils-spec, git submodule (read-only here)
 tools/                     codegen, new-module (Node, dev only), coverage gate
 docs/                      coding handbook
 ```

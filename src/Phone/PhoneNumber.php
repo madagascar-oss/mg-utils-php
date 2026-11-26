@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Phone;
+namespace Mdgascar\MdgUtils\Phone;
 
-use Madagascar\MgUtils\ErrorCode;
-use Madagascar\MgUtils\MgUtilsException;
-use Madagascar\MgUtils\Phone\Generated\Data;
-use Madagascar\MgUtils\SafeParseResult;
+use Mdgascar\MdgUtils\ErrorCode;
+use Mdgascar\MdgUtils\MdgUtilsException;
+use Mdgascar\MdgUtils\Phone\Generated\Data;
+use Mdgascar\MdgUtils\SafeParseResult;
 
 /**
  * A Malagasy mobile number that passed validation.
@@ -40,12 +40,12 @@ final readonly class PhoneNumber
      * Accepts `034 12 345 67`, `+261 34 12 345 67`, `00261…`, `261…` and `34 12 345 67`.
      * Example: `PhoneNumber::parse('+261 34 12 345 67')->nationalNumber` is `'341234567'`.
      *
-     * @throws MgUtilsException with `ErrorCode::InvalidFormat` or `ErrorCode::UnknownOperator`
+     * @throws MdgUtilsException with `ErrorCode::InvalidFormat` or `ErrorCode::UnknownOperator`
      */
     public static function parse(string $input): self
     {
         $result = self::read($input);
-        if ($result instanceof MgUtilsException) {
+        if ($result instanceof MdgUtilsException) {
             throw $result;
         }
 
@@ -73,7 +73,7 @@ final readonly class PhoneNumber
     public static function safeParse(mixed $input): SafeParseResult
     {
         if (!\is_string($input)) {
-            return SafeParseResult::failure(new MgUtilsException(ErrorCode::InvalidType, 'Expected the phone number as a string.'));
+            return SafeParseResult::failure(new MdgUtilsException(ErrorCode::InvalidType, 'Expected the phone number as a string.'));
         }
         $result = self::read($input);
 
@@ -105,32 +105,32 @@ final readonly class PhoneNumber
         };
     }
 
-    private static function read(string $input): self|MgUtilsException
+    private static function read(string $input): self|MdgUtilsException
     {
         $nationalNumber = self::readNationalNumber($input);
-        if ($nationalNumber instanceof MgUtilsException) {
+        if ($nationalNumber instanceof MdgUtilsException) {
             return $nationalNumber;
         }
         $operatorId = Data::OPERATOR_BY_PREFIX[substr($nationalNumber, 0, Data::OPERATOR_PREFIX_LENGTH)] ?? null;
         if ($operatorId === null) {
-            return new MgUtilsException(ErrorCode::UnknownOperator, 'The prefix is not assigned to a Malagasy mobile operator.');
+            return new MdgUtilsException(ErrorCode::UnknownOperator, 'The prefix is not assigned to a Malagasy mobile operator.');
         }
 
         return new self('+' . Data::COUNTRY_CODE . $nationalNumber, $nationalNumber, Operator::from($operatorId));
     }
 
-    private static function readNationalNumber(string $input): string|MgUtilsException
+    private static function readNationalNumber(string $input): string|MdgUtilsException
     {
         $length = preg_match_all('/./su', $input);
         if ($length === false) {
-            return new MgUtilsException(ErrorCode::InvalidFormat, 'Phone numbers must be valid UTF-8 text.');
+            return new MdgUtilsException(ErrorCode::InvalidFormat, 'Phone numbers must be valid UTF-8 text.');
         }
         if ($length > self::MAX_INPUT_LENGTH) {
-            return new MgUtilsException(ErrorCode::InvalidFormat, \sprintf('Phone numbers are at most %d characters.', self::MAX_INPUT_LENGTH));
+            return new MdgUtilsException(ErrorCode::InvalidFormat, \sprintf('Phone numbers are at most %d characters.', self::MAX_INPUT_LENGTH));
         }
         $nationalNumber = self::stripNationalPrefix((string) preg_replace(self::SEPARATORS, '', $input));
         if ($nationalNumber === null || preg_match(self::NATIONAL_NUMBER_DIGITS, $nationalNumber) !== 1) {
-            return new MgUtilsException(ErrorCode::InvalidFormat, 'Expected a Malagasy number such as 034 12 345 67.');
+            return new MdgUtilsException(ErrorCode::InvalidFormat, 'Expected a Malagasy number such as 034 12 345 67.');
         }
 
         return $nationalNumber;

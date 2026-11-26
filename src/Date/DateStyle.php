@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Date;
+namespace Mdgascar\MdgUtils\Date;
 
 /**
  * How `MalagasyDate::format()` writes a date.

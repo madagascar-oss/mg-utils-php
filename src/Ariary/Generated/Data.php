@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Ariary\Generated;
+namespace Mdgascar\MdgUtils\Ariary\Generated;
 
 /**
  * Lookup tables from spec/modules/ariary/data.yaml (spec 0.5.0).

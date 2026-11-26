@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Tests\Phone;
+namespace Mdgascar\MdgUtils\Tests\Phone;
 
-use Madagascar\MgUtils\ErrorCode;
-use Madagascar\MgUtils\MgUtilsException;
-use Madagascar\MgUtils\Phone\Operator;
-use Madagascar\MgUtils\Phone\PhoneNumber;
-use Madagascar\MgUtils\Phone\PhoneNumberFormat;
+use Mdgascar\MdgUtils\ErrorCode;
+use Mdgascar\MdgUtils\MdgUtilsException;
+use Mdgascar\MdgUtils\Phone\Operator;
+use Mdgascar\MdgUtils\Phone\PhoneNumber;
+use Mdgascar\MdgUtils\Phone\PhoneNumberFormat;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -62,12 +62,12 @@ final class PhoneNumberTest extends TestCase
 
     public function testRejectsInvalidUtf8AsInvalidFormat(): void
     {
-        $this->expectExceptionObject(new MgUtilsException(ErrorCode::InvalidFormat, 'Phone numbers must be valid UTF-8 text.'));
+        $this->expectExceptionObject(new MdgUtilsException(ErrorCode::InvalidFormat, 'Phone numbers must be valid UTF-8 text.'));
 
         PhoneNumber::parse("034\xff12 345 67");
     }
 
-    public function testNeverThrowsAnythingButMgUtilsExceptionForRandomStrings(): void
+    public function testNeverThrowsAnythingButMdgUtilsExceptionForRandomStrings(): void
     {
         mt_srand(self::RANDOM_SEED);
         $alphabet = "0123456789 +-.()_ab\u{a0}\u{ff10}";

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Benchmarks;
+namespace Mdgascar\MdgUtils\Benchmarks;
 
-use Madagascar\MgUtils\Date\DateStyle;
-use Madagascar\MgUtils\Date\MalagasyDate;
+use Mdgascar\MdgUtils\Date\DateStyle;
+use Mdgascar\MdgUtils\Date\MalagasyDate;
 
 final class MalagasyDateBench
 {

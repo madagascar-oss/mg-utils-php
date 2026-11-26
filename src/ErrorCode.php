@@ -4,10 +4,10 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils;
+namespace Mdgascar\MdgUtils;
 
 /**
- * Error code shared by every mg-utils language port.
+ * Error code shared by every mdg-utils language port.
  */
 enum ErrorCode: string
 {

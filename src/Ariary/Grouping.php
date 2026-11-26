@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Ariary;
+namespace Mdgascar\MdgUtils\Ariary;
 
 /**
  * Thousand separator for formatting and reading amounts. Madagascar uses a space or a dot;

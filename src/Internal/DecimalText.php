@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Internal;
+namespace Mdgascar\MdgUtils\Internal;
 
 /**
  * Exact decimal helpers. Amounts are int or float values, but words and money must never show

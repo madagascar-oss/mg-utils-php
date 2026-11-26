@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Benchmarks;
+namespace Mdgascar\MdgUtils\Benchmarks;
 
-use Madagascar\MgUtils\Ariary\Ariary;
+use Mdgascar\MdgUtils\Ariary\Ariary;
 
 final class AriaryBench
 {
