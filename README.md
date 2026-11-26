@@ -4,7 +4,7 @@
 
 Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
-Implements spec 0.4.0.
+Implements spec 0.5.0.
 
 **Docs and live playground (run PHP in your browser):** [madagascar-oss.github.io/mg-utils-docs](https://madagascar-oss.github.io/mg-utils-docs/docs/installation/using-composer/)
 
@@ -21,6 +21,7 @@ use Madagascar\MgUtils\Words\NumberWords;
 
 NumberWords::fromInt(21);   // 'iraika amby roapolo'
 NumberWords::fromInt(2026); // 'enina amby roapolo sy roa arivo'
+NumberWords::fromFloat(3.14); // "telo faingo efatra ambin'ny folo"
 ```
 
 ```php
@@ -39,14 +40,19 @@ PhoneNumber::isValid($userInput);       // bool, never throws
 
 ```php
 use Madagascar\MgUtils\Ariary\Ariary;
+use Madagascar\MgUtils\Ariary\DecimalSeparator;
 use Madagascar\MgUtils\Ariary\Grouping;
 
 Ariary::fromInt(1500)->format();              // 'Ar 1 500' (no-break spaces, never a comma)
+Ariary::fromFloat(1500.5)->format();          // 'Ar 1 500,5' (decimal comma)
 Ariary::fromInt(1500)->format(Grouping::Dot); // 'Ar 1.500'
 Ariary::parse('1.500 Ar')->amount;            // 1500
-Ariary::safeParse('1,500')->error?->errorCode; // ErrorCode::InvalidFormat
+Ariary::parse('1 500,50 Ar')->amount;         // 1500.5
+Ariary::parse('1,500.50', Grouping::Comma, DecimalSeparator::Dot)->amount; // 1500.5 (opt-in)
+Ariary::safeParse('1.5')->error?->errorCode;  // ErrorCode::InvalidFormat
 Ariary::fromInt(1500)->toWords();             // 'dimanjato sy arivo ariary'
-Ariary::fromFmg(7500)->amount;                // 1500
+Ariary::fromFmg(7501)->amount;                // 1500.2
+Ariary::fromFloat(0.07)->toFmg();             // 0.35 (exact)
 ```
 
 ```php

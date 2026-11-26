@@ -34,7 +34,8 @@ function isList(value: readonly unknown[] | object): value is readonly unknown[]
 export function phpLiteral(value: unknown, depth = 1): string {
   if (typeof value === 'string') return phpString(value);
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  if (value === null || typeof value !== 'object')
+  if (value === null) return 'null';
+  if (typeof value !== 'object')
     throw new Error(`Unsupported value ${String(value)}`);
   const entries = isList(value)
     ? value.map((item) => phpLiteral(item, depth + 1))

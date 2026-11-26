@@ -22,37 +22,80 @@ final class AmountText
     private const string PLAIN_AMOUNT = '/^(?:0|[1-9][0-9]*)$/';
     private const string NON_DIGITS = '/[^0-9]/';
 
-    /** @var array{whitespace: string, grouped: string}|null */
-    private static ?array $patterns = null;
+    private const string DECIMALS = '/^[0-9]+$/';
+    private const string IS_SPACE = '/^[\s\p{Zs}]$/u';
+    private const string POINT = '.';
+    // The whole part and, at most, the decimals.
+    private const int MAX_PARTS = 2;
 
-    public static function read(string $text): int|MgUtilsException
+    /** @var array<string, array{whitespace: ?string, grouped: string}> */
+    private static array $patterns = [];
+
+    /**
+     * Reads the text as digits, with a `.` before any decimals: `'1 500,50 Ar'` → `'1500.50'`.
+     *
+     * @param ?string          $grouping the grouping character, or null for every Malagasy one
+     * @param non-empty-string $decimal  the decimal character
+     */
+    public static function read(string $text, ?string $grouping, string $decimal): string|MgUtilsException
     {
         $length = preg_match_all('/./su', $text);
         if ($length === false || $length > self::MAX_INPUT_LENGTH) {
             return new MgUtilsException(ErrorCode::InvalidFormat, \sprintf('Amounts are at most %d characters of valid text.', self::MAX_INPUT_LENGTH));
         }
-        $digits = self::digits($text);
-        if ($digits === null) {
-            return new MgUtilsException(ErrorCode::InvalidFormat, 'Expected an amount such as Ar 1 500 (no commas, no decimals).');
-        }
-        if (\strlen($digits) > \strlen((string) Data::MAX_AMOUNT) || (int) $digits > Data::MAX_AMOUNT) {
-            return new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts go up to %d.', Data::MAX_AMOUNT));
-        }
+        $amount = self::stripCurrency(self::trim($text));
+        $digits = $amount === null ? null : self::digits($amount, self::patterns(self::groupingCharacters($grouping, $decimal)), $decimal);
 
-        return (int) $digits;
+        return $digits ?? new MgUtilsException(ErrorCode::InvalidFormat, 'Expected an amount such as Ar 1 500 or Ar 1 500,50.');
     }
 
-    private static function digits(string $text): ?string
+    /**
+     * @param array{whitespace: ?string, grouped: string} $patterns
+     * @param non-empty-string                            $decimal
+     */
+    private static function digits(string $amount, array $patterns, string $decimal): ?string
     {
-        $amount = self::stripCurrency(self::trim($text));
-        if ($amount === null) {
+        $parts = explode($decimal, $amount);
+        if (\count($parts) > self::MAX_PARTS) {
             return null;
         }
-        $patterns = self::patterns();
-        $normalized = (string) preg_replace($patterns['whitespace'], self::SPACE, $amount);
+        $whole = self::wholeDigits($parts[0], $patterns);
+        if ($whole === null || !isset($parts[1])) {
+            return $whole;
+        }
+
+        return preg_match(self::DECIMALS, $parts[1]) === 1 ? $whole . self::POINT . $parts[1] : null;
+    }
+
+    /**
+     * @param array{whitespace: ?string, grouped: string} $patterns
+     */
+    private static function wholeDigits(string $whole, array $patterns): ?string
+    {
+        $normalized = $patterns['whitespace'] === null ? $whole : (string) preg_replace($patterns['whitespace'], self::SPACE, $whole);
         $isAmount = preg_match(self::PLAIN_AMOUNT, $normalized) === 1 || preg_match($patterns['grouped'], $normalized) === 1;
 
         return $isAmount ? (string) preg_replace(self::NON_DIGITS, '', $normalized) : null;
+    }
+
+    /**
+     * Every Malagasy separator (spaces and dot) when none is chosen; else the chosen one, a
+     * space standing for every kind of space. The decimal character never counts as grouping.
+     *
+     * @return list<string>
+     */
+    private static function groupingCharacters(?string $grouping, string $decimal): array
+    {
+        if ($grouping === null) {
+            return array_values(array_filter(Data::READABLE_SEPARATORS, static fn(string $separator): bool => $separator !== $decimal));
+        }
+
+        return self::isSpace($grouping) ? array_values(array_filter(Data::READABLE_SEPARATORS, self::isSpace(...))) : [$grouping];
+    }
+
+    private static function isSpace(string $character): bool
+    {
+        return preg_match(self::IS_SPACE, $character) === 1;
     }
 
     private static function trim(string $text): string
@@ -87,21 +130,27 @@ final class AmountText
     }
 
     /**
-     * @return array{whitespace: string, grouped: string}
+     * Built once per set of grouping characters. Spaces of every kind count as one separator:
+     * they are turned into a plain space first.
+     *
+     * @param list<string> $grouping
+     *
+     * @return array{whitespace: ?string, grouped: string}
      */
-    private static function patterns(): array
+    private static function patterns(array $grouping): array
     {
-        if (self::$patterns === null) {
-            $isSpace = static fn(string $separator): bool => preg_match('/^[\s\p{Zs}]$/u', $separator) === 1;
-            $spaces = array_filter(Data::READABLE_SEPARATORS, $isSpace);
-            $others = array_filter(Data::READABLE_SEPARATORS, static fn(string $separator): bool => !$isSpace($separator));
+        $key = implode('', $grouping);
+        if (!isset(self::$patterns[$key])) {
+            $spaces = array_filter($grouping, self::isSpace(...));
+            $others = array_filter($grouping, static fn(string $separator): bool => !self::isSpace($separator));
             $quote = static fn(string $separator): string => preg_quote($separator, '/');
-            self::$patterns = [
-                'whitespace' => '/[' . implode('', array_map($quote, $spaces)) . ']/u',
-                'grouped' => \sprintf('/^[1-9][0-9]{0,%1$d}([ %2$s])[0-9]{%3$d}(?:\1[0-9]{%3$d})*$/', Data::GROUP_SIZE - 1, implode('', array_map($quote, $others)), Data::GROUP_SIZE),
+            $class = ($spaces === [] ? '' : self::SPACE) . implode('', array_map($quote, $others));
+            self::$patterns[$key] = [
+                'whitespace' => $spaces === [] ? null : '/[' . implode('', array_map($quote, $spaces)) . ']/u',
+                'grouped' => \sprintf('/^[1-9][0-9]{0,%1$d}([%2$s])[0-9]{%3$d}(?:\1[0-9]{%3$d})*$/', Data::GROUP_SIZE - 1, $class, Data::GROUP_SIZE),
             ];
         }
 
-        return self::$patterns;
+        return self::$patterns[$key];
     }
 }

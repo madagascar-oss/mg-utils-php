@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Ariary\Generated;
 
 /**
- * Lookup tables from spec/modules/ariary/data.yaml (spec 0.4.0).
+ * Lookup tables from spec/modules/ariary/data.yaml (spec 0.5.0).
  *
  * @internal
  */
@@ -40,7 +40,7 @@ final class Data
 
     public const int FRANCS_PER_ARIARY = 5;
 
-    public const int MIN_AMOUNT = 0;
+    public const int FRANC_DIVISION_FACTOR = 2;
 
-    public const int MAX_AMOUNT = 999999999999;
+    public const int MIN_AMOUNT = 0;
 }

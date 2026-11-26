@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Words\Generated;
 
 /**
- * Lookup tables from spec/modules/words/data.yaml (spec 0.4.0).
+ * Lookup tables from spec/modules/words/data.yaml (spec 0.5.0).
  *
  * @internal
  */
@@ -59,34 +59,36 @@ final class Data
         'sivinjato',
     ];
 
-    /** @var list<array{value: int, word: string, maxCount: int}> */
+    /** @var non-empty-list<array{word: string, exponent: int, countDigits: int|null}> */
     public const array SCALES = [
         [
-            'value' => 1000,
             'word' => 'arivo',
-            'maxCount' => 9,
+            'exponent' => 3,
+            'countDigits' => 1,
         ],
         [
-            'value' => 10000,
             'word' => 'alina',
-            'maxCount' => 9,
+            'exponent' => 4,
+            'countDigits' => 1,
         ],
         [
-            'value' => 100000,
             'word' => 'hetsy',
-            'maxCount' => 9,
+            'exponent' => 5,
+            'countDigits' => 1,
         ],
         [
-            'value' => 1000000,
             'word' => 'tapitrisa',
-            'maxCount' => 999,
+            'exponent' => 6,
+            'countDigits' => 3,
         ],
         [
-            'value' => 1000000000,
             'word' => 'lavitrisa',
-            'maxCount' => 999,
+            'exponent' => 9,
+            'countDigits' => null,
         ],
     ];
+
+    public const string DECIMAL_SEPARATOR = 'faingo';
 
     public const string JOINER_UNITS_BEFORE_TEN = 'ambin\'ny';
 
@@ -95,6 +97,4 @@ final class Data
     public const string JOINER_BETWEEN_GROUPS = 'sy';
 
     public const int MIN_VALUE = 0;
-
-    public const int MAX_VALUE = 999999999999;
 }

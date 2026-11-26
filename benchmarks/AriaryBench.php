@@ -16,7 +16,7 @@ final class AriaryBench
         return Ariary::fromInt(self::SAMPLE_AMOUNT)->format();
     }
 
-    public function benchParse(): int
+    public function benchParse(): int|float
     {
         return Ariary::parse(self::SAMPLE_TEXT)->amount;
     }

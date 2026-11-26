@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Madagascar\MgUtils\Words;
 
 use Madagascar\MgUtils\ErrorCode;
+use Madagascar\MgUtils\Internal\DecimalText;
 use Madagascar\MgUtils\MgUtilsException;
 use Madagascar\MgUtils\Words\Generated\Data;
 
@@ -15,31 +16,84 @@ final class NumberWords
 {
     private const int BASE = 10;
     private const int HUNDRED = self::BASE * self::BASE;
+    private const int BELOW_THOUSAND_DIGITS = 3;
+    private const string ONE = '1';
+    private const string ZERO_DIGIT = '0';
+    private const string DECIMAL_POINT = '.';
 
     /**
      * Writes a whole number in Malagasy words, smallest part first.
      *
      * Example: `NumberWords::fromInt(2026)` returns `'enina amby roapolo sy roa arivo'`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange` below 0 or above 999 999 999 999
+     * @throws MgUtilsException with `ErrorCode::OutOfRange` below 0
      */
     public static function fromInt(int $value): string
     {
-        if ($value < Data::MIN_VALUE || $value > Data::MAX_VALUE) {
-            throw new MgUtilsException(
-                ErrorCode::OutOfRange,
-                \sprintf('NumberWords supports %d to %d.', Data::MIN_VALUE, Data::MAX_VALUE),
-            );
+        if ($value < Data::MIN_VALUE) {
+            throw self::outOfRange(PHP_INT_MAX);
         }
-        if ($value === 0) {
+
+        return self::wholeWords((string) $value);
+    }
+
+    /**
+     * Writes a number in Malagasy words, with `faingo` before the decimals, which are read as
+     * a whole number (each leading zero is `aotra`). The decimals are those of the shortest
+     * form that reads back as the same float, so `1.0` has none.
+     *
+     * Example: `NumberWords::fromFloat(3.14)` returns `"telo faingo efatra ambin'ny folo"`.
+     *
+     * @throws MgUtilsException with `ErrorCode::InvalidType` for NAN or INF,
+     *                          `ErrorCode::OutOfRange` below 0 or above 9 007 199 254 740 991
+     */
+    public static function fromFloat(float $value): string
+    {
+        if (!is_finite($value)) {
+            throw new MgUtilsException(ErrorCode::InvalidType, 'NumberWords expects a finite number.');
+        }
+        if ($value < Data::MIN_VALUE || $value > DecimalText::MAX_EXACT_FLOAT_INTEGER) {
+            throw self::outOfRange(DecimalText::MAX_EXACT_FLOAT_INTEGER);
+        }
+        $parts = explode(self::DECIMAL_POINT, DecimalText::plain($value));
+        $words = self::wholeWords($parts[0]);
+        if (!isset($parts[1])) {
+            return $words;
+        }
+
+        return \sprintf('%s %s %s', $words, Data::DECIMAL_SEPARATOR, self::decimalWords($parts[1]));
+    }
+
+    private static function outOfRange(int $max): MgUtilsException
+    {
+        return new MgUtilsException(
+            ErrorCode::OutOfRange,
+            \sprintf('NumberWords supports %d to %d.', Data::MIN_VALUE, $max),
+        );
+    }
+
+    // Works on decimal digits, not arithmetic, so counts and decimals of any length stay exact.
+    private static function wholeWords(string $digits): string
+    {
+        $significant = ltrim($digits, self::ZERO_DIGIT);
+        if ($significant === '') {
             return Data::ZERO_WORD;
         }
-        $groups = [self::belowThousand($value % Data::SCALES[0]['value'])];
+        $groups = [self::belowThousand((int) substr($significant, -self::BELOW_THOUSAND_DIGITS))];
         foreach (Data::SCALES as $scale) {
-            $groups[] = self::scaleWords($value, $scale);
+            $groups[] = self::scaleWords($significant, $scale);
         }
 
         return self::join($groups, Data::JOINER_BETWEEN_GROUPS);
+    }
+
+    // Each leading zero after the point is "aotra"; the rest reads as a whole number.
+    private static function decimalWords(string $digits): string
+    {
+        $significant = ltrim($digits, self::ZERO_DIGIT);
+        $zeros = array_fill(0, \strlen($digits) - \strlen($significant), Data::ZERO_WORD);
+
+        return implode(' ', [...$zeros, self::wholeWords($significant)]);
     }
 
     private static function digitAt(int $value, int $place): int
@@ -81,20 +135,38 @@ final class NumberWords
     }
 
     /**
-     * A count of one is bare only for the first group: "arivo", but "iray alina", "iray tapitrisa".
+     * The digits a group counts, without leading zeros: '' when the group is absent. The
+     * largest group takes every digit left, so its count can be any size.
      *
-     * @param array{value: int, word: string, maxCount: int} $scale
+     * @param array{word: string, exponent: int, countDigits: int|null} $scale
      */
-    private static function scaleWords(int $value, array $scale): string
+    private static function scaleCount(string $digits, array $scale): string
     {
-        $count = intdiv($value, $scale['value']) % ($scale['maxCount'] + 1);
-        if ($count === 0) {
+        $end = \strlen($digits) - $scale['exponent'];
+        if ($end <= 0) {
             return '';
         }
-        if ($count === 1 && $scale['value'] === Data::SCALES[0]['value']) {
+        $start = $scale['countDigits'] === null ? 0 : max(0, $end - $scale['countDigits']);
+
+        return ltrim(substr($digits, $start, $end - $start), self::ZERO_DIGIT);
+    }
+
+    /**
+     * A count of one is bare only for the first group: "arivo", but "iray alina", "iray
+     * tapitrisa". Counts are read with every rule, so 1000 lavitrisa is "arivo lavitrisa".
+     *
+     * @param array{word: string, exponent: int, countDigits: int|null} $scale
+     */
+    private static function scaleWords(string $digits, array $scale): string
+    {
+        $count = self::scaleCount($digits, $scale);
+        if ($count === '') {
+            return '';
+        }
+        if ($count === self::ONE && $scale['exponent'] === Data::SCALES[0]['exponent']) {
             return $scale['word'];
         }
 
-        return self::belowThousand($count) . ' ' . $scale['word'];
+        return self::wholeWords($count) . ' ' . $scale['word'];
     }
 }
