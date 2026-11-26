@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Madagascar\MgUtils\Date\DateStyle;
-use Madagascar\MgUtils\Date\MalagasyDate;
-use Madagascar\MgUtils\Date\NameWidth;
+use Mdgascar\MdgUtils\Date\DateStyle;
+use Mdgascar\MdgUtils\Date\MalagasyDate;
+use Mdgascar\MdgUtils\Date\NameWidth;
 
 // Arguments arrive untyped from YAML on purpose: wrong types fail with TypeError and unknown
 // style or width names with ValueError, which this port reports as INVALID_TYPE (docs/adr/0002).

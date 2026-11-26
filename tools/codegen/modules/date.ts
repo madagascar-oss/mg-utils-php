@@ -1,6 +1,12 @@
 // date: spec data → lookup tables → PHP files.
-import type { PhpOutput } from './shared.ts';
-import { dataClass, pascalCase, phpFile, phpLiteral, ROOT_NAMESPACE } from '../emit.ts';
+import type { PhpOutput } from "./shared.ts";
+import {
+  dataClass,
+  pascalCase,
+  phpFile,
+  phpLiteral,
+  ROOT_NAMESPACE,
+} from "../emit.ts";
 
 interface DateData {
   readonly months: readonly {
@@ -35,21 +41,38 @@ function byNumber<T>(
   numberOf: (entry: T) => number,
   pick: (entry: T) => string,
 ): string[] {
-  const sorted = [...entries].sort((left, right) => numberOf(left) - numberOf(right));
+  const sorted = [...entries].sort(
+    (left, right) => numberOf(left) - numberOf(right),
+  );
   sorted.forEach((entry, index) => {
-    if (numberOf(entry) !== index + 1) throw new Error(`spec gap at number ${String(index + 1)}`);
+    if (numberOf(entry) !== index + 1)
+      throw new Error(`spec gap at number ${String(index + 1)}`);
   });
-  return ['', ...sorted.map(pick)];
+  return ["", ...sorted.map(pick)];
 }
 
 function dateTables(data: DateData): DateTables {
-  const monthNumber = (month: DateData['months'][number]): number => month.number;
-  const weekdayNumber = (weekday: DateData['weekdays'][number]): number => weekday.isoNumber;
+  const monthNumber = (month: DateData["months"][number]): number =>
+    month.number;
+  const weekdayNumber = (weekday: DateData["weekdays"][number]): number =>
+    weekday.isoNumber;
   return {
     monthNames: byNumber(data.months, monthNumber, (month) => month.name),
-    monthAbbreviations: byNumber(data.months, monthNumber, (month) => month.abbreviation),
-    weekdayNames: byNumber(data.weekdays, weekdayNumber, (weekday) => weekday.name),
-    weekdayAbbreviations: byNumber(data.weekdays, weekdayNumber, (weekday) => weekday.abbreviation),
+    monthAbbreviations: byNumber(
+      data.months,
+      monthNumber,
+      (month) => month.abbreviation,
+    ),
+    weekdayNames: byNumber(
+      data.weekdays,
+      weekdayNumber,
+      (weekday) => weekday.name,
+    ),
+    weekdayAbbreviations: byNumber(
+      data.weekdays,
+      weekdayNumber,
+      (weekday) => weekday.abbreviation,
+    ),
     styles: data.styles.map(({ id, pattern }) => [id, pattern] as const),
     minYear: data.limits.minYear,
     maxYear: data.limits.maxYear,
@@ -57,10 +80,15 @@ function dateTables(data: DateData): DateTables {
 }
 
 function dateStyleEnum(styles: readonly (readonly [string, string])[]): string {
-  const cases = styles.map(([id]) => `    case ${pascalCase(id)} = ${phpLiteral(id)};`).join('\n');
+  const cases = styles
+    .map(([id]) => `    case ${pascalCase(id)} = ${phpLiteral(id)};`)
+    .join("\n");
   const patterns = styles
-    .map(([id, pattern]) => `            self::${pascalCase(id)} => ${phpLiteral(pattern)},`)
-    .join('\n');
+    .map(
+      ([id, pattern]) =>
+        `            self::${pascalCase(id)} => ${phpLiteral(pattern)},`,
+    )
+    .join("\n");
   return phpFile(
     `${ROOT_NAMESPACE}\\Date`,
     `/**
@@ -74,7 +102,7 @@ enum DateStyle: string
 ${cases}
 
     /** The style used when none is given: the first one in the spec. */
-    public const self DEFAULT = self::${pascalCase(styles[0]?.[0] ?? '')};
+    public const self DEFAULT = self::${pascalCase(styles[0]?.[0] ?? "")};
 
     /**
      * The CLDR pattern of this style, e.g. \`d MMMM y\` for \`DateStyle::Long\`.
@@ -93,35 +121,40 @@ export function emit(data: DateData, source: string): PhpOutput[] {
   const tables = dateTables(data);
   return [
     {
-      path: 'Date/Generated/Data.php',
+      path: "Date/Generated/Data.php",
       source: dataClass(
         `${ROOT_NAMESPACE}\\Date\\Generated`,
         [
-          { name: 'MONTH_NAMES', type: 'array', value: tables.monthNames, varDoc: 'list<string>' },
           {
-            name: 'MONTH_ABBREVIATIONS',
-            type: 'array',
+            name: "MONTH_NAMES",
+            type: "array",
+            value: tables.monthNames,
+            varDoc: "list<string>",
+          },
+          {
+            name: "MONTH_ABBREVIATIONS",
+            type: "array",
             value: tables.monthAbbreviations,
-            varDoc: 'list<string>',
+            varDoc: "list<string>",
           },
           {
-            name: 'WEEKDAY_NAMES',
-            type: 'array',
+            name: "WEEKDAY_NAMES",
+            type: "array",
             value: tables.weekdayNames,
-            varDoc: 'list<string>',
+            varDoc: "list<string>",
           },
           {
-            name: 'WEEKDAY_ABBREVIATIONS',
-            type: 'array',
+            name: "WEEKDAY_ABBREVIATIONS",
+            type: "array",
             value: tables.weekdayAbbreviations,
-            varDoc: 'list<string>',
+            varDoc: "list<string>",
           },
-          { name: 'MIN_YEAR', type: 'int', value: tables.minYear },
-          { name: 'MAX_YEAR', type: 'int', value: tables.maxYear },
+          { name: "MIN_YEAR", type: "int", value: tables.minYear },
+          { name: "MAX_YEAR", type: "int", value: tables.maxYear },
         ],
         source,
       ),
     },
-    { path: 'Date/DateStyle.php', source: dateStyleEnum(tables.styles) },
+    { path: "Date/DateStyle.php", source: dateStyleEnum(tables.styles) },
   ];
 }

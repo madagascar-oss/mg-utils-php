@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Benchmarks;
+namespace Mdgascar\MdgUtils\Benchmarks;
 
-use Madagascar\MgUtils\Phone\PhoneNumber;
-use Madagascar\MgUtils\Phone\PhoneNumberFormat;
+use Mdgascar\MdgUtils\Phone\PhoneNumber;
+use Mdgascar\MdgUtils\Phone\PhoneNumberFormat;
 
 final class PhoneNumberBench
 {

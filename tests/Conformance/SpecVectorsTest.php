@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Tests\Conformance;
+namespace Mdgascar\MdgUtils\Tests\Conformance;
 
-use Madagascar\MgUtils\MgUtilsException;
+use Mdgascar\MdgUtils\MdgUtilsException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
@@ -61,7 +61,7 @@ final class SpecVectorsTest extends TestCase
     {
         try {
             $call();
-        } catch (MgUtilsException $exception) {
+        } catch (MdgUtilsException $exception) {
             return $exception->errorCode->value;
         } catch (\TypeError|\ValueError) {
             return 'INVALID_TYPE';

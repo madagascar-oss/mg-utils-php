@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils;
+namespace Mdgascar\MdgUtils;
 
 /**
- * Thrown by mg-utils when input is rejected. Check `errorCode`: it is the same in every language.
+ * Thrown by mdg-utils when input is rejected. Check `errorCode`: it is the same in every language.
  *
  * Example:
  *
  *     try {
  *         NumberWords::fromInt(-1);
- *     } catch (MgUtilsException $exception) {
+ *     } catch (MdgUtilsException $exception) {
  *         $exception->errorCode === ErrorCode::OutOfRange; // true
  *     }
  */
-final class MgUtilsException extends \InvalidArgumentException
+final class MdgUtilsException extends \InvalidArgumentException
 {
     public function __construct(
         public readonly ErrorCode $errorCode,

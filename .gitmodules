@@ -1,4 +1,4 @@
 [submodule "spec"]
 	path = spec
-	url = https://github.com/madagascar-oss/mg-utils-spec.git
+	url = https://github.com/mdgascar/mdg-utils-spec.git
 	branch = main

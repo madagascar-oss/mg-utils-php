@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Phone;
+namespace Mdgascar\MdgUtils\Phone;
 
 /**
  * How `PhoneNumber::format()` writes a number.

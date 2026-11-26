@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Phone;
+namespace Mdgascar\MdgUtils\Phone;
 
 /**
  * A Malagasy mobile operator, identified by the same id in every language.

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils\Ariary;
+namespace Mdgascar\MdgUtils\Ariary;
 
-use Madagascar\MgUtils\Ariary\Generated\Data;
-use Madagascar\MgUtils\Ariary\Internal\AmountText;
-use Madagascar\MgUtils\ErrorCode;
-use Madagascar\MgUtils\Internal\DecimalText;
-use Madagascar\MgUtils\MgUtilsException;
-use Madagascar\MgUtils\SafeParseResult;
-use Madagascar\MgUtils\Words\NumberWords;
+use Mdgascar\MdgUtils\Ariary\Generated\Data;
+use Mdgascar\MdgUtils\Ariary\Internal\AmountText;
+use Mdgascar\MdgUtils\ErrorCode;
+use Mdgascar\MdgUtils\Internal\DecimalText;
+use Mdgascar\MdgUtils\MdgUtilsException;
+use Mdgascar\MdgUtils\SafeParseResult;
+use Mdgascar\MdgUtils\Words\NumberWords;
 
 /**
  * An amount in Malagasy Ariary (MGA), whole or decimal.
@@ -40,7 +40,7 @@ final readonly class Ariary
      *
      * Example: `Ariary::fromInt(1500)->amount` is `1500`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange` below 0
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0
      */
     public static function fromInt(int $amount): self
     {
@@ -52,7 +52,7 @@ final readonly class Ariary
      *
      * Example: `Ariary::fromFloat(1500.5)->format()` returns `'Ar 1 500,5'`.
      *
-     * @throws MgUtilsException with `ErrorCode::InvalidType` for NAN or INF,
+     * @throws MdgUtilsException with `ErrorCode::InvalidType` for NAN or INF,
      *                          `ErrorCode::OutOfRange` below 0 or above 9 007 199 254 740 991
      */
     public static function fromFloat(float $amount): self
@@ -68,14 +68,14 @@ final readonly class Ariary
      *
      * Example: `Ariary::parse('1 500,50 Ar')->amount` is `1500.5`.
      *
-     * @throws MgUtilsException with `ErrorCode::InvalidFormat` (signs, a dot as decimal point by
+     * @throws MdgUtilsException with `ErrorCode::InvalidFormat` (signs, a dot as decimal point by
      *                          default), `ErrorCode::OutOfRange`, or `ErrorCode::InvalidType`
      *                          when `$grouping` and `$decimal` are the same character
      */
     public static function parse(string $text, ?Grouping $grouping = null, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): self
     {
         $amount = self::read($text, $grouping, $decimal);
-        if ($amount instanceof MgUtilsException) {
+        if ($amount instanceof MdgUtilsException) {
             throw $amount;
         }
 
@@ -102,11 +102,11 @@ final readonly class Ariary
     public static function safeParse(mixed $text, ?Grouping $grouping = null, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): SafeParseResult
     {
         if (!\is_string($text)) {
-            return SafeParseResult::failure(new MgUtilsException(ErrorCode::InvalidType, 'Expected the amount as a string.'));
+            return SafeParseResult::failure(new MdgUtilsException(ErrorCode::InvalidType, 'Expected the amount as a string.'));
         }
         $amount = self::read($text, $grouping, $decimal);
 
-        return $amount instanceof MgUtilsException ? SafeParseResult::failure($amount) : SafeParseResult::success($amount);
+        return $amount instanceof MdgUtilsException ? SafeParseResult::failure($amount) : SafeParseResult::success($amount);
     }
 
     /**
@@ -114,7 +114,7 @@ final readonly class Ariary
      *
      * Example: `Ariary::fromFmg(7501)->amount` is `1500.2`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange` below 0 or when too large,
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0 or when too large,
      *                          `ErrorCode::InvalidType` for NAN or INF
      */
     public static function fromFmg(int|float $francs): self
@@ -127,7 +127,7 @@ final readonly class Ariary
      *
      * Example: `Ariary::formatFmg(7500)` returns `'Fmg 7 500'`.
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange`, or `ErrorCode::InvalidType` for NAN,
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange`, or `ErrorCode::InvalidType` for NAN,
      *                          INF, or the same character for grouping and decimal
      */
     public static function formatFmg(int|float $francs, Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): string
@@ -141,7 +141,7 @@ final readonly class Ariary
      *
      * Example: `Ariary::fromInt(1500)->format(Grouping::Dot, SymbolPosition::After)` returns `'1.500 Ar'`.
      *
-     * @throws MgUtilsException with `ErrorCode::InvalidType` when `$grouping` and `$decimal` are the same character
+     * @throws MdgUtilsException with `ErrorCode::InvalidType` when `$grouping` and `$decimal` are the same character
      */
     public function format(Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): string
     {
@@ -165,20 +165,20 @@ final readonly class Ariary
      *
      * Example: `Ariary::fromFloat(0.07)->toFmg()` returns `0.35` (never `0.35000000000000003`).
      *
-     * @throws MgUtilsException with `ErrorCode::OutOfRange` when the francs would be too large to hold exactly
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` when the francs would be too large to hold exactly
      */
     public function toFmg(): int|float
     {
         return self::fromDecimal(DecimalText::multiply($this->amount, Data::FRANCS_PER_ARIARY));
     }
 
-    private static function read(string $text, ?Grouping $grouping, DecimalSeparator $decimal): self|MgUtilsException
+    private static function read(string $text, ?Grouping $grouping, DecimalSeparator $decimal): self|MdgUtilsException
     {
         if ($grouping?->separator() === $decimal->separator()) {
             return self::sameSeparators();
         }
         $digits = AmountText::read($text, $grouping?->separator(), $decimal->separator());
-        if ($digits instanceof MgUtilsException) {
+        if ($digits instanceof MdgUtilsException) {
             return $digits;
         }
         $amount = DecimalText::toNumber($digits);
@@ -196,23 +196,23 @@ final readonly class Ariary
     private static function checked(int|float $value): int|float
     {
         if (\is_float($value) && !is_finite($value)) {
-            throw new MgUtilsException(ErrorCode::InvalidType, 'Amounts are finite numbers.');
+            throw new MdgUtilsException(ErrorCode::InvalidType, 'Amounts are finite numbers.');
         }
         if ($value < Data::MIN_AMOUNT) {
-            throw new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts start at %d.', Data::MIN_AMOUNT));
+            throw new MdgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts start at %d.', Data::MIN_AMOUNT));
         }
 
         return \is_int($value) ? $value : self::fromDecimal(DecimalText::plain($value));
     }
 
-    private static function outOfRange(): MgUtilsException
+    private static function outOfRange(): MdgUtilsException
     {
-        return new MgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts go up to %d, or %d with decimals.', PHP_INT_MAX, DecimalText::MAX_EXACT_FLOAT_INTEGER));
+        return new MdgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts go up to %d, or %d with decimals.', PHP_INT_MAX, DecimalText::MAX_EXACT_FLOAT_INTEGER));
     }
 
-    private static function sameSeparators(): MgUtilsException
+    private static function sameSeparators(): MdgUtilsException
     {
-        return new MgUtilsException(ErrorCode::InvalidType, 'Grouping and decimal separators must be different characters.');
+        return new MdgUtilsException(ErrorCode::InvalidType, 'Grouping and decimal separators must be different characters.');
     }
 
     /**

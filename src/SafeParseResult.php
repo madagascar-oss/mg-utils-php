@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Madagascar\MgUtils;
+namespace Mdgascar\MdgUtils;
 
 /**
  * Outcome of a `safeParse()` call: either the parsed value in `data`, or the rejection in
- * `error` with its `errorCode`. Never throws. Same shape as `SafeParseResult` in mg-utils-js.
+ * `error` with its `errorCode`. Never throws. Same shape as `SafeParseResult` in mdg-utils-js.
  *
  * Example:
  *
@@ -24,7 +24,7 @@ final readonly class SafeParseResult
     private function __construct(
         public bool $success,
         public ?object $data,
-        public ?MgUtilsException $error,
+        public ?MdgUtilsException $error,
     ) {}
 
     /**
@@ -46,7 +46,7 @@ final readonly class SafeParseResult
      *
      * @return self<never>
      */
-    public static function failure(MgUtilsException $error): self
+    public static function failure(MdgUtilsException $error): self
     {
         // No value to infer T from: a failure fits any SafeParseResult<T> (T is covariant).
         /** @var self<never> $failure */
