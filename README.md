@@ -1,6 +1,7 @@
 # mdg-utils-php
 
 [![CI](https://github.com/mdgascar/mdg-utils-php/actions/workflows/ci.yml/badge.svg)](https://github.com/mdgascar/mdg-utils-php/actions/workflows/ci.yml)
+[![Packagist](https://img.shields.io/packagist/v/mdgascar/mdg-utils)](https://packagist.org/packages/mdgascar/mdg-utils)
 
 Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
