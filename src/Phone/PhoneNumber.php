@@ -16,7 +16,7 @@ use Mdgascar\MdgUtils\SafeParseResult;
  *
  *     $phone = PhoneNumber::parse('034 12 345 67');
  *     $phone->e164;                                    // '+261341234567'
- *     $phone->operator;                                // Operator::Telma
+ *     $phone->operator;                                // Operator::Yas
  *     $phone->format(PhoneNumberFormat::International); // '+261 34 12 345 67'
  */
 final readonly class PhoneNumber
@@ -55,7 +55,7 @@ final readonly class PhoneNumber
     /**
      * Like `parse()`, but returns `null` instead of throwing.
      *
-     * Example: `PhoneNumber::tryParse('035 12 345 67')` returns `null`.
+     * Example: `PhoneNumber::tryParse('031 12 345 67')` returns `null`.
      */
     public static function tryParse(mixed $input): ?self
     {
@@ -65,7 +65,7 @@ final readonly class PhoneNumber
     /**
      * Like `parse()`, but never throws: returns the number or the reason it was rejected.
      *
-     * Example: `PhoneNumber::safeParse('035 12 345 67')->error?->errorCode` is
+     * Example: `PhoneNumber::safeParse('031 12 345 67')->error?->errorCode` is
      * `ErrorCode::UnknownOperator`.
      *
      * @return SafeParseResult<self>

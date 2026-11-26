@@ -30,11 +30,11 @@ use Mdgascar\MdgUtils\Phone\PhoneNumberFormat;
 
 $phone = PhoneNumber::parse('034 12 345 67');
 $phone->e164;                                     // '+261341234567'
-$phone->operator->displayName();                  // 'Telma'
+$phone->operator->displayName();                  // 'Yas Madagascar'
 $phone->format(PhoneNumberFormat::International); // '+261 34 12 345 67'
 
-PhoneNumber::tryParse('035 12 345 67'); // null
-PhoneNumber::safeParse('035 12 345 67')->error?->errorCode; // ErrorCode::UnknownOperator
+PhoneNumber::tryParse('031 12 345 67'); // null
+PhoneNumber::safeParse('031 12 345 67')->error?->errorCode; // ErrorCode::UnknownOperator
 PhoneNumber::isValid($userInput);       // bool, never throws
 ```
 
