@@ -8,9 +8,10 @@ interface WordsData {
   readonly unitOneInCompound: Worded;
   readonly tens: readonly Valued[];
   readonly hundreds: readonly Valued[];
-  readonly scales: readonly (Valued & { readonly maxCount: number })[];
+  readonly scales: readonly (Valued & { readonly maxCount?: number })[];
+  readonly decimalSeparator: Worded;
   readonly joiners: Readonly<Record<'unitsBeforeTen' | 'belowThousand' | 'betweenGroups', Worded>>;
-  readonly limits: { readonly min: number; readonly max: number };
+  readonly limits: { readonly min: number };
 }
 
 interface WordsTables {
@@ -19,16 +20,20 @@ interface WordsTables {
   readonly unitOneInCompound: string;
   readonly tenWords: readonly string[];
   readonly hundredWords: readonly string[];
-  readonly scales: readonly {
-    readonly value: number;
-    readonly word: string;
-    readonly maxCount: number;
-  }[];
+  readonly scales: readonly Scale[];
+  readonly decimalSeparator: string;
   readonly joinerUnitsBeforeTen: string;
   readonly joinerBelowThousand: string;
   readonly joinerBetweenGroups: string;
   readonly minValue: number;
-  readonly maxValue: number;
+}
+
+// A group word, the power of ten it stands for, and how many digits its count takes
+// (null for the largest group, whose count has no limit).
+interface Scale {
+  readonly word: string;
+  readonly exponent: number;
+  readonly countDigits: number | null;
 }
 
 // Place values of the digits each word table covers.
@@ -37,6 +42,34 @@ const UNIT_STEP = 1;
 const TEN_STEP = 10;
 
 const HUNDRED_STEP = 100;
+
+const DECIMAL_BASE = 10;
+
+const POWER_OF_TEN = /^10*$/;
+
+const ALL_NINES = /^9+$/;
+
+/** Turns spec scales into exponents and count widths, checking they tile the digits with no gap. */
+function scaleTable(scales: WordsData['scales']): Scale[] {
+  const sorted = [...scales].sort((left, right) => left.value - right.value);
+  return sorted.map(({ value, word, maxCount }, index) => {
+    const digits = String(value);
+    if (!POWER_OF_TEN.test(digits)) throw new Error(`scale ${word}: not a power of ten`);
+    const exponent = digits.length - 1;
+    const next = sorted[index + 1];
+    if (maxCount === undefined) {
+      if (next !== undefined) throw new Error(`scale ${word}: only the largest may omit maxCount`);
+      return { word, exponent, countDigits: null };
+    }
+    const countDigits = String(maxCount).length;
+    if (!ALL_NINES.test(String(maxCount))) throw new Error(`scale ${word}: maxCount not 9, 99, …`);
+    if (next === undefined) throw new Error(`scale ${word}: the largest scale must omit maxCount`);
+    if (value * DECIMAL_BASE ** countDigits !== next.value) {
+      throw new Error(`scale ${word}: count does not reach ${next.word}`);
+    }
+    return { word, exponent, countDigits };
+  });
+}
 
 /** Words indexed by digit (index 0 is ''), checked for gaps against the spec values. */
 function indexedWords(entries: readonly Valued[], step: number): string[] {
@@ -55,18 +88,17 @@ function wordsTables(data: WordsData): WordsTables {
     unitOneInCompound: data.unitOneInCompound.word,
     tenWords: indexedWords(data.tens, TEN_STEP),
     hundredWords: indexedWords(data.hundreds, HUNDRED_STEP),
-    scales: [...data.scales]
-      .sort((left, right) => left.value - right.value)
-      .map(({ value, word, maxCount }) => ({ value, word, maxCount })),
+    scales: scaleTable(data.scales),
+    decimalSeparator: data.decimalSeparator.word,
     joinerUnitsBeforeTen: data.joiners.unitsBeforeTen.word,
     joinerBelowThousand: data.joiners.belowThousand.word,
     joinerBetweenGroups: data.joiners.betweenGroups.word,
     minValue: data.limits.min,
-    maxValue: data.limits.max,
   };
 }
 
-const SCALE_TYPE = 'list<array{value: int, word: string, maxCount: int}>';
+// countDigits null = no limit (the largest group).
+const SCALE_TYPE = 'non-empty-list<array{word: string, exponent: int, countDigits: int|null}>';
 
 export function emit(data: WordsData, source: string): PhpOutput[] {
   const tables = wordsTables(data);
@@ -88,11 +120,11 @@ export function emit(data: WordsData, source: string): PhpOutput[] {
             varDoc: 'list<string>',
           },
           { name: 'SCALES', type: 'array', value: tables.scales, varDoc: SCALE_TYPE },
+          { name: 'DECIMAL_SEPARATOR', type: 'string', value: tables.decimalSeparator },
           { name: 'JOINER_UNITS_BEFORE_TEN', type: 'string', value: tables.joinerUnitsBeforeTen },
           { name: 'JOINER_BELOW_THOUSAND', type: 'string', value: tables.joinerBelowThousand },
           { name: 'JOINER_BETWEEN_GROUPS', type: 'string', value: tables.joinerBetweenGroups },
           { name: 'MIN_VALUE', type: 'int', value: tables.minValue },
-          { name: 'MAX_VALUE', type: 'int', value: tables.maxValue },
         ],
         source,
       ),

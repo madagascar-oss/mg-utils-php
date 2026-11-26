@@ -4,7 +4,7 @@
 
 Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
-Implements spec 0.4.0.
+Implements spec 0.5.0.
 
 **Docs and live playground (run PHP in your browser):** [madagascar-oss.github.io/mg-utils-docs](https://madagascar-oss.github.io/mg-utils-docs/docs/installation/using-composer/)
 
@@ -21,6 +21,7 @@ use Madagascar\MgUtils\Words\NumberWords;
 
 NumberWords::fromInt(21);   // 'iraika amby roapolo'
 NumberWords::fromInt(2026); // 'enina amby roapolo sy roa arivo'
+NumberWords::fromFloat(3.14); // "telo faingo efatra ambin'ny folo"
 ```
 
 ```php

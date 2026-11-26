@@ -9,15 +9,20 @@ use Madagascar\MgUtils\Words\NumberWords;
 final class NumberWordsBench
 {
     private const int SMALL_NUMBER = 21;
-    private const int LARGEST_SUPPORTED_NUMBER = 999_999_999_999;
+    private const float DECIMAL_NUMBER = 1234.5678;
 
     public function benchSmall(): void
     {
         NumberWords::fromInt(self::SMALL_NUMBER);
     }
 
+    public function benchDecimal(): void
+    {
+        NumberWords::fromFloat(self::DECIMAL_NUMBER);
+    }
+
     public function benchLargest(): void
     {
-        NumberWords::fromInt(self::LARGEST_SUPPORTED_NUMBER);
+        NumberWords::fromInt(PHP_INT_MAX);
     }
 }
