@@ -4,7 +4,9 @@
 
 Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
-Implements spec 0.1.0.
+Implements spec 0.5.0.
+
+**Docs and live playground (run PHP in your browser):** [madagascar-oss.github.io/mg-utils-docs](https://madagascar-oss.github.io/mg-utils-docs/docs/installation/using-composer/)
 
 Data and test vectors come from [mg-utils-spec](https://github.com/madagascar-oss/mg-utils-spec),
 included as a git submodule at `spec/`. The JavaScript port is
@@ -19,6 +21,7 @@ use Madagascar\MgUtils\Words\NumberWords;
 
 NumberWords::fromInt(21);   // 'iraika amby roapolo'
 NumberWords::fromInt(2026); // 'enina amby roapolo sy roa arivo'
+NumberWords::fromFloat(3.14); // "telo faingo efatra ambin'ny folo"
 ```
 
 ```php
@@ -31,18 +34,25 @@ $phone->operator->displayName();                  // 'Telma'
 $phone->format(PhoneNumberFormat::International); // '+261 34 12 345 67'
 
 PhoneNumber::tryParse('035 12 345 67'); // null
+PhoneNumber::safeParse('035 12 345 67')->error?->errorCode; // ErrorCode::UnknownOperator
 PhoneNumber::isValid($userInput);       // bool, never throws
 ```
 
 ```php
 use Madagascar\MgUtils\Ariary\Ariary;
+use Madagascar\MgUtils\Ariary\DecimalSeparator;
 use Madagascar\MgUtils\Ariary\Grouping;
 
 Ariary::fromInt(1500)->format();              // 'Ar 1 500' (no-break spaces, never a comma)
+Ariary::fromFloat(1500.5)->format();          // 'Ar 1 500,5' (decimal comma)
 Ariary::fromInt(1500)->format(Grouping::Dot); // 'Ar 1.500'
 Ariary::parse('1.500 Ar')->amount;            // 1500
+Ariary::parse('1 500,50 Ar')->amount;         // 1500.5
+Ariary::parse('1,500.50', Grouping::Comma, DecimalSeparator::Dot)->amount; // 1500.5 (opt-in)
+Ariary::safeParse('1.5')->error?->errorCode;  // ErrorCode::InvalidFormat
 Ariary::fromInt(1500)->toWords();             // 'dimanjato sy arivo ariary'
-Ariary::fromFmg(7500)->amount;                // 1500
+Ariary::fromFmg(7501)->amount;                // 1500.2
+Ariary::fromFloat(0.07)->toFmg();             // 0.35 (exact)
 ```
 
 ```php
@@ -59,10 +69,10 @@ Errors throw `Madagascar\MgUtils\MgUtilsException`; check `$exception->errorCode
 (`ErrorCode::OutOfRange`, …), which is the same code in every mg-utils language.
 
 Rules, sources and recorded disagreements:
-[spec/words](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/words/README.md),
-[spec/phone](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/phone/README.md),
-[spec/ariary](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/ariary/README.md),
-[spec/date](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/date/README.md).
+[words](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/modules/words/README.md),
+[phone](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/modules/phone/README.md),
+[ariary](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/modules/ariary/README.md),
+[date](https://github.com/madagascar-oss/mg-utils-spec/blob/dev/modules/date/README.md).
 
 ## Contributing
 

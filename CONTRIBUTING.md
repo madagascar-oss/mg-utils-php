@@ -21,6 +21,21 @@ just setup
 Needs PHP 8.3+ with Composer, Node.js 22.18+ with pnpm (code generation only, never shipped)
 and [just](https://just.systems).
 
+## Repository layout
+
+```text
+src/<Module>/              public API; src/<Module>/Generated/ comes from codegen
+src/{ErrorCode,Spec}.php   generated; MgUtilsException.php is hand-written
+tests/<Module>/            unit tests, mirroring src/
+tests/Conformance/         runs every spec vector; functions/ maps spec names to the PHP API
+benchmarks/                phpbench
+spec/                      mg-utils-spec, git submodule (read-only here)
+tools/                     codegen, new-module (Node, dev only), coverage gate
+docs/                      coding handbook
+```
+
+Only `src/`, `composer.json`, `README.md` and `LICENSE` ship to Packagist.
+
 ## Commands
 
 | Command                  | Does                                                 |
@@ -39,3 +54,8 @@ Branch from `dev` as `<type>/<short-name>`, open the PR against `dev`; PRs are s
 with a Conventional Commit title. To release, merge `dev` into `main`, then tag `main` as
 `vX.Y.Z`; Packagist picks up the tag. Update "Implements spec x.y.z" in the README when the
 spec submodule moves.
+
+## Code rules
+
+See [docs/CODING.md](docs/CODING.md). Most rules are enforced by tools, so CI tells you before
+a reviewer does.

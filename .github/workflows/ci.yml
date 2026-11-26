@@ -5,6 +5,7 @@ on:
     branches: [main, dev]
   pull_request:
   merge_group:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,7 +16,7 @@ concurrency:
 
 jobs:
   lint:
-    uses: madagascar-oss/.github/.github/workflows/reusable-lint.yml@main
+    uses: madagascar-oss/.github/.github/workflows/reusable-lint.yml@0610e49630c07c4854ea85312207c26722fc1437 # main
 
   codegen:
     name: Codegen drift
@@ -26,7 +27,7 @@ jobs:
           persist-credentials: false
           submodules: true
       - uses: ./.github/actions/setup
-      - run: pnpm typecheck
+      - run: pnpm lint
       - run: pnpm codegen
       - name: Generated code matches spec/
         run: git diff --exit-code -- src || (echo "::error::Generated code is out of date. Run 'just codegen' and commit." && exit 1)

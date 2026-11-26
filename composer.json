@@ -59,7 +59,7 @@
         "test": [
             "@putenv XDEBUG_MODE=coverage",
             "phpunit --coverage-text=build/coverage.txt --coverage-clover=build/clover.xml",
-            "php tools/check-coverage.php build/clover.xml"
+            "php tools/coverage/check.php build/clover.xml"
         ],
         "cs": "php-cs-fixer check --diff",
         "cs-fix": "php-cs-fixer fix",

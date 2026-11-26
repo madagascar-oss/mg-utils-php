@@ -7,6 +7,7 @@ namespace Madagascar\MgUtils\Phone;
 use Madagascar\MgUtils\ErrorCode;
 use Madagascar\MgUtils\MgUtilsException;
 use Madagascar\MgUtils\Phone\Generated\Data;
+use Madagascar\MgUtils\SafeParseResult;
 
 /**
  * A Malagasy mobile number that passed validation.
@@ -56,11 +57,27 @@ final readonly class PhoneNumber
      *
      * Example: `PhoneNumber::tryParse('035 12 345 67')` returns `null`.
      */
-    public static function tryParse(string $input): ?self
+    public static function tryParse(mixed $input): ?self
     {
+        return self::safeParse($input)->data;
+    }
+
+    /**
+     * Like `parse()`, but never throws: returns the number or the reason it was rejected.
+     *
+     * Example: `PhoneNumber::safeParse('035 12 345 67')->error?->errorCode` is
+     * `ErrorCode::UnknownOperator`.
+     *
+     * @return SafeParseResult<self>
+     */
+    public static function safeParse(mixed $input): SafeParseResult
+    {
+        if (!\is_string($input)) {
+            return SafeParseResult::failure(new MgUtilsException(ErrorCode::InvalidType, 'Expected the phone number as a string.'));
+        }
         $result = self::read($input);
 
-        return $result instanceof self ? $result : null;
+        return $result instanceof self ? SafeParseResult::success($result) : SafeParseResult::failure($result);
     }
 
     /**

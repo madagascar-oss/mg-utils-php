@@ -11,8 +11,9 @@ import {
   readYaml,
   stripProvenance,
 } from '../lib/spec.ts';
-import { errorCodeFile, pascalCase, specFile } from './php/emit.ts';
-import { moduleFiles } from './php/modules.ts';
+import { errorCodeFile, specFile } from './core-files.ts';
+import { pascalCase } from './emit.ts';
+import { moduleFiles } from './modules/index.ts';
 
 const specVersion = readSpecVersion();
 const errors = readErrors();

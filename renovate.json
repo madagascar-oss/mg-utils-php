@@ -44,17 +44,6 @@
       "automerge": true
     },
     {
-      "description": "TypeScript is capped by typescript-eslint support; bump them together.",
-      "matchPackageNames": [
-        "typescript"
-      ],
-      "matchUpdateTypes": [
-        "major",
-        "minor"
-      ],
-      "enabled": false
-    },
-    {
       "description": "Spec bumps carry code changes: never automerge.",
       "matchManagers": [
         "git-submodules"

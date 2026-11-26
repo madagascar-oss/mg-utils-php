@@ -106,7 +106,7 @@ final readonly class MalagasyDate
      *
      * Example: `MalagasyDate::fromString('2026-11-23')->format(DateStyle::Numeric)` returns `'23/11/2026'`.
      */
-    public function format(?DateStyle $style = null): string
+    public function format(DateStyle $style = DateStyle::DEFAULT): string
     {
         $values = [
             'EEEE' => self::weekdayName($this->isoWeekday()),
@@ -117,7 +117,7 @@ final readonly class MalagasyDate
             'd' => (string) $this->day,
             'y' => (string) $this->year,
         ];
-        $pattern = ($style ?? DateStyle::cases()[0])->pattern();
+        $pattern = $style->pattern();
 
         return (string) preg_replace_callback(self::PATTERN_TOKEN, static fn(array $token): string => $values[$token[0]], $pattern);
     }
