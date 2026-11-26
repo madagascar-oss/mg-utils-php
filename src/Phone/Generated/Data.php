@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Phone\Generated;
 
 /**
- * Lookup tables from spec/modules/phone/data.yaml (spec 0.5.0).
+ * Lookup tables from spec/modules/phone/data.yaml (spec 0.6.0).
  *
  * @internal
  */
@@ -33,9 +33,10 @@ final class Data
     public const array OPERATOR_BY_PREFIX = [
         '32' => 'orange',
         '33' => 'airtel',
-        '34' => 'telma',
+        '34' => 'yas',
+        '35' => 'airtel',
         '37' => 'orange',
-        '38' => 'telma',
+        '38' => 'yas',
         '39' => 'blueline',
     ];
 

@@ -18,18 +18,19 @@ final class PhoneNumberTest extends TestCase
     private const int FUZZ_RUNS = 2000;
     // Longer than most phone spellings, short enough to stay under the 32-character limit often.
     private const int FUZZ_MAX_INPUT_LENGTH = 20;
-    private const string TELMA_NUMBER_WITH_NEW_PREFIX = '0381234567';
+    private const string YAS_NUMBER_WITH_NEW_PREFIX = '0381234567';
     // A phone number given as an integer instead of a string.
     private const int NUMBER_NOT_A_STRING = 341234567;
 
     public function testTryParseReturnsThePhoneNumberForValidInput(): void
     {
-        self::assertSame(Operator::Telma, PhoneNumber::tryParse('034 12 345 67')?->operator);
+        self::assertSame(Operator::Yas, PhoneNumber::tryParse('034 12 345 67')?->operator);
+        self::assertSame(Operator::Airtel, PhoneNumber::tryParse('035 12 345 67')?->operator);
     }
 
     public function testTryParseReturnsNullInsteadOfThrowing(): void
     {
-        self::assertNull(PhoneNumber::tryParse('035 12 345 67'));
+        self::assertNull(PhoneNumber::tryParse('031 12 345 67'));
     }
 
     public function testTryParseReturnsNullForNonStrings(): void
@@ -42,13 +43,13 @@ final class PhoneNumberTest extends TestCase
         $result = PhoneNumber::safeParse('034 12 345 67');
 
         self::assertTrue($result->success);
-        self::assertSame(Operator::Telma, $result->data?->operator);
+        self::assertSame(Operator::Yas, $result->data?->operator);
         self::assertNull($result->error);
     }
 
     public function testSafeParseReturnsTheErrorCodeInsteadOfThrowing(): void
     {
-        $result = PhoneNumber::safeParse('035 12 345 67');
+        $result = PhoneNumber::safeParse('031 12 345 67');
 
         self::assertFalse($result->success);
         self::assertNull($result->data);
@@ -97,7 +98,7 @@ final class PhoneNumberTest extends TestCase
     #[DataProvider('formats')]
     public function testReadsBackEveryFormatItWrites(PhoneNumberFormat $format): void
     {
-        $phone = PhoneNumber::parse(self::TELMA_NUMBER_WITH_NEW_PREFIX);
+        $phone = PhoneNumber::parse(self::YAS_NUMBER_WITH_NEW_PREFIX);
 
         self::assertEquals($phone, PhoneNumber::parse($phone->format($format)));
     }
@@ -106,6 +107,6 @@ final class PhoneNumberTest extends TestCase
     {
         $names = array_map(static fn(Operator $operator): string => $operator->displayName(), Operator::cases());
 
-        self::assertSame(['Orange Madagascar', 'Airtel Madagascar', 'Telma', 'Blueline'], $names);
+        self::assertSame(['Orange Madagascar', 'Airtel Madagascar', 'Yas Madagascar', 'Blueline'], $names);
     }
 }

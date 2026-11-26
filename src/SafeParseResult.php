@@ -10,7 +10,7 @@ namespace Mdgascar\MdgUtils;
  *
  * Example:
  *
- *     $result = PhoneNumber::safeParse('035 12 345 67');
+ *     $result = PhoneNumber::safeParse('031 12 345 67');
  *     $result->success;           // false
  *     $result->error?->errorCode; // ErrorCode::UnknownOperator
  *
