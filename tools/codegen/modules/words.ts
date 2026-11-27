@@ -14,7 +14,17 @@ interface WordsData {
   readonly joiners: Readonly<
     Record<"unitsBeforeTen" | "belowThousand" | "betweenGroups", Worded>
   >;
-  readonly limits: { readonly min: number; readonly maxTextLength: number };
+  readonly ordinals: {
+    readonly first: Worded;
+    readonly prefix: Worded;
+    readonly prefixBeforeVowel: Worded;
+    readonly vowels: readonly string[];
+  };
+  readonly limits: {
+    readonly min: number;
+    readonly maxTextLength: number;
+    readonly maxWordsLength: number;
+  };
 }
 
 interface WordsTables {
@@ -31,6 +41,11 @@ interface WordsTables {
   readonly joinerBetweenGroups: string;
   readonly minValue: number;
   readonly maxTextLength: number;
+  readonly maxWordsLength: number;
+  readonly ordinalFirst: string;
+  readonly ordinalPrefix: string;
+  readonly ordinalPrefixBeforeVowel: string;
+  readonly vowels: readonly string[];
 }
 
 // A group word, the power of ten it stands for, and how many digits its count takes
@@ -129,6 +144,11 @@ function wordsTables(data: WordsData): WordsTables {
     joinerBetweenGroups: data.joiners.betweenGroups.word,
     minValue: data.limits.min,
     maxTextLength: data.limits.maxTextLength,
+    maxWordsLength: data.limits.maxWordsLength,
+    ordinalFirst: data.ordinals.first.word,
+    ordinalPrefix: data.ordinals.prefix.word,
+    ordinalPrefixBeforeVowel: data.ordinals.prefixBeforeVowel.word,
+    vowels: data.ordinals.vowels,
   };
 }
 
@@ -206,6 +226,24 @@ export function emit(data: WordsData, source: string): PhpOutput[] {
             name: "MAX_TEXT_LENGTH",
             type: "int",
             value: tables.maxTextLength,
+          },
+          {
+            name: "MAX_WORDS_LENGTH",
+            type: "int",
+            value: tables.maxWordsLength,
+          },
+          { name: "ORDINAL_FIRST", type: "string", value: tables.ordinalFirst },
+          { name: "ORDINAL_PREFIX", type: "string", value: tables.ordinalPrefix },
+          {
+            name: "ORDINAL_PREFIX_BEFORE_VOWEL",
+            type: "string",
+            value: tables.ordinalPrefixBeforeVowel,
+          },
+          {
+            name: "VOWELS",
+            type: "array",
+            value: tables.vowels,
+            varDoc: "list<string>",
           },
         ],
         source,

@@ -20,6 +20,12 @@ enum ErrorCode: string
     /** The input text cannot be read as a value of this module (wrong characters or wrong length). */
     case InvalidFormat = 'INVALID_FORMAT';
 
-    /** The phone number is well formed but its operator code is not assigned to a mobile operator. */
+    /** The phone number is well formed but its operator code is not assigned to an operator. */
     case UnknownOperator = 'UNKNOWN_OPERATOR';
+
+    /** The value is exact in the text but the port's number type cannot hold it exactly; ask for the exact text instead. */
+    case PrecisionLoss = 'PRECISION_LOSS';
+
+    /** The text reads as more than one value, so none is chosen. */
+    case Ambiguous = 'AMBIGUOUS';
 }

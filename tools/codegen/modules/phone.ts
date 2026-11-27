@@ -19,8 +19,20 @@ interface PhoneData {
   readonly operators: readonly {
     readonly id: string;
     readonly name: string;
-    readonly prefixes: readonly string[];
+    readonly prefixes?: readonly string[];
+    readonly fixedPrefixes?: readonly string[];
   }[];
+  readonly fixedZones: {
+    readonly prefix: string;
+    readonly zones: readonly { readonly digit: string; readonly name: string }[];
+  };
+  readonly areas: {
+    readonly entries: readonly {
+      readonly prefix: string;
+      readonly name: string;
+      readonly province: string;
+    }[];
+  };
 }
 
 interface PhoneTables {
@@ -31,13 +43,17 @@ interface PhoneTables {
   readonly grouping: readonly number[];
   readonly operators: readonly { readonly id: string; readonly name: string }[];
   readonly operatorByPrefix: readonly (readonly [string, string])[];
+  readonly fixedPrefixes: readonly string[];
   readonly operatorPrefixLength: number;
+  readonly fixedZonePrefix: string;
+  readonly fixedZoneDigits: readonly string[];
+  readonly areas: PhoneData["areas"]["entries"];
 }
 
 function phoneTables(data: PhoneData): PhoneTables {
   const operatorByPrefix = data.operators
-    .flatMap((operator) =>
-      operator.prefixes.map((prefix) => [prefix, operator.id] as const),
+    .flatMap(({ id, prefixes = [], fixedPrefixes = [] }) =>
+      [...prefixes, ...fixedPrefixes].map((prefix) => [prefix, id] as const),
     )
     .sort(([left], [right]) => left.localeCompare(right));
   return {
@@ -48,7 +64,14 @@ function phoneTables(data: PhoneData): PhoneTables {
     grouping: [...data.plan.grouping],
     operators: data.operators.map(({ id, name }) => ({ id, name })),
     operatorByPrefix,
+    fixedPrefixes: data.operators.flatMap(({ fixedPrefixes = [] }) => fixedPrefixes),
     operatorPrefixLength: operatorByPrefix[0]?.[0].length ?? 0,
+    fixedZonePrefix: data.fixedZones.prefix,
+    fixedZoneDigits: data.fixedZones.zones.map((zone) => zone.digit),
+    // Longest prefix first, so the most precise area wins.
+    areas: [...data.areas.entries].sort(
+      (left, right) => right.prefix.length - left.prefix.length,
+    ),
   };
 }
 
@@ -67,7 +90,7 @@ function operatorEnum(
   return phpFile(
     `${ROOT_NAMESPACE}\\Phone`,
     `/**
- * A Malagasy mobile operator, identified by the same id in every language.
+ * A Malagasy telephone operator, identified by the same id in every language.
  *
  * Example: \`PhoneNumber::parse('034 12 345 67')->operator === Operator::Yas\`
  */
@@ -122,9 +145,32 @@ export function emit(data: PhoneData, source: string): PhpOutput[] {
             varDoc: "array<int|string, string>",
           },
           {
+            name: "FIXED_PREFIXES",
+            type: "array",
+            value: tables.fixedPrefixes,
+            varDoc: "list<string>",
+          },
+          {
             name: "OPERATOR_PREFIX_LENGTH",
             type: "int",
             value: tables.operatorPrefixLength,
+          },
+          {
+            name: "FIXED_ZONE_PREFIX",
+            type: "string",
+            value: tables.fixedZonePrefix,
+          },
+          {
+            name: "FIXED_ZONE_DIGITS",
+            type: "array",
+            value: tables.fixedZoneDigits,
+            varDoc: "list<string>",
+          },
+          {
+            name: "AREAS",
+            type: "array",
+            value: tables.areas,
+            varDoc: "list<array{prefix: string, name: string, province: string}>",
           },
         ],
         source,

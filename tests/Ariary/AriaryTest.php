@@ -21,7 +21,6 @@ final class AriaryTest extends TestCase
     // Largest supported amount (spec/modules/ariary/data.yaml limits.max).
     // The spec sets no max: amounts stop where an int stops.
     private const int LARGEST_SUPPORTED_AMOUNT = PHP_INT_MAX;
-    private const int MAX_INPUT_LENGTH = 32;
     // A dot is not a decimal point by default.
     private const string DOT_DECIMAL_TEXT = '1.5';
     // Every other run uses a decimal amount.
@@ -35,7 +34,7 @@ final class AriaryTest extends TestCase
 
     public function testTryParseReturnsTheAmountForValidText(): void
     {
-        self::assertSame(self::SAMPLE_AMOUNT, Ariary::tryParse(self::SAMPLE_TEXT)?->amount);
+        self::assertSame(self::SAMPLE_AMOUNT, Ariary::tryParse(self::SAMPLE_TEXT)?->amount());
     }
 
     public function testTryParseReturnsNullInsteadOfThrowing(): void
@@ -53,7 +52,7 @@ final class AriaryTest extends TestCase
         $result = Ariary::safeParse(self::SAMPLE_TEXT);
 
         self::assertTrue($result->success);
-        self::assertSame(self::SAMPLE_AMOUNT, $result->data?->amount);
+        self::assertSame(self::SAMPLE_AMOUNT, $result->data?->amount());
         self::assertNull($result->error);
     }
 
@@ -95,12 +94,8 @@ final class AriaryTest extends TestCase
                 continue;
             }
             $text = $amount->format($grouping, $position, $decimal);
-            // Reading stops at 32 characters (ADR 0004); a tiny decimal can format longer.
-            if (mb_strlen($text) > self::MAX_INPUT_LENGTH) {
-                continue;
-            }
 
-            self::assertSame($amount->amount, Ariary::parse($text, $grouping, $decimal)->amount);
+            self::assertSame($amount->digits, Ariary::parse($text, $grouping, $decimal)->digits);
         }
     }
 
@@ -121,22 +116,30 @@ final class AriaryTest extends TestCase
 
     public function testReadsPhpIntMax(): void
     {
-        self::assertSame(PHP_INT_MAX, Ariary::parse(self::LARGEST_AMOUNT_TEXT)->amount);
+        self::assertSame(PHP_INT_MAX, Ariary::parse(self::LARGEST_AMOUNT_TEXT)->amount());
     }
 
-    public function testRejectsAmountsAbovePhpIntMaxAsOutOfRange(): void
+    public function testKeepsAmountsAbovePhpIntMaxExactWithoutRounding(): void
     {
-        self::assertSame(ErrorCode::OutOfRange, Ariary::safeParse(self::FIRST_AMOUNT_TOO_LARGE)->error?->errorCode);
-        self::assertSame(ErrorCode::OutOfRange, Ariary::safeParse(self::LONGER_THAN_ANY_INT)->error?->errorCode);
+        foreach ([self::FIRST_AMOUNT_TOO_LARGE, self::LONGER_THAN_ANY_INT] as $text) {
+            $amount = Ariary::parse($text);
+            self::assertSame(preg_replace('/[^0-9]/', '', $text), $amount->digits);
+            try {
+                $amount->amount();
+                self::fail('Expected MdgUtilsException');
+            } catch (MdgUtilsException $exception) {
+                self::assertSame(ErrorCode::PrecisionLoss, $exception->errorCode);
+            }
+        }
     }
 
-    public function testToFmgRejectsFrancsAbovePhpIntMax(): void
+    public function testToFmgThrowsPrecisionLossAbovePhpIntMax(): void
     {
         try {
             Ariary::fromInt(PHP_INT_MAX)->toFmg();
             self::fail('Expected MdgUtilsException');
         } catch (MdgUtilsException $exception) {
-            self::assertSame(ErrorCode::OutOfRange, $exception->errorCode);
+            self::assertSame(ErrorCode::PrecisionLoss, $exception->errorCode);
         }
     }
 }

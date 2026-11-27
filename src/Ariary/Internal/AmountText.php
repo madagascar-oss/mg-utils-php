@@ -15,8 +15,6 @@ use Mdgascar\MdgUtils\MdgUtilsException;
  */
 final class AmountText
 {
-    // Bounded so a parser that reads user input never scans unbounded text.
-    private const int MAX_INPUT_LENGTH = 32;
     private const string SPACE = ' ';
     private const string EDGE_SPACES = '/^[\s\p{Zs}]+|[\s\p{Zs}]+$/u';
     private const string PLAIN_AMOUNT = '/^(?:0|[1-9][0-9]*)$/';
@@ -40,8 +38,8 @@ final class AmountText
     public static function read(string $text, ?string $grouping, string $decimal): string|MdgUtilsException
     {
         $length = preg_match_all('/./su', $text);
-        if ($length === false || $length > self::MAX_INPUT_LENGTH) {
-            return new MdgUtilsException(ErrorCode::InvalidFormat, \sprintf('Amounts are at most %d characters of valid text.', self::MAX_INPUT_LENGTH));
+        if ($length === false || $length > Data::MAX_READ_LENGTH) {
+            return new MdgUtilsException(ErrorCode::InvalidFormat, \sprintf('Amounts are at most %d characters of valid text.', Data::MAX_READ_LENGTH));
         }
         $amount = self::stripCurrency(self::trim($text));
         $digits = $amount === null ? null : self::digits($amount, self::patterns(self::groupingCharacters($grouping, $decimal)), $decimal);

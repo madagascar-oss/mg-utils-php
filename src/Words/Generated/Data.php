@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Words\Generated;
 
 /**
- * Lookup tables from spec/modules/words/data.yaml (spec 0.8.0).
+ * Lookup tables from spec/modules/words/data.yaml (spec 0.9.0).
  *
  * @internal
  */
@@ -183,4 +183,21 @@ final class Data
     public const int MIN_VALUE = 0;
 
     public const int MAX_TEXT_LENGTH = 100;
+
+    public const int MAX_WORDS_LENGTH = 4096;
+
+    public const string ORDINAL_FIRST = 'voalohany';
+
+    public const string ORDINAL_PREFIX = 'faha';
+
+    public const string ORDINAL_PREFIX_BEFORE_VOWEL = 'fah';
+
+    /** @var list<string> */
+    public const array VOWELS = [
+        'a',
+        'e',
+        'i',
+        'o',
+        'y',
+    ];
 }

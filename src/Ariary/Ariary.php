@@ -10,6 +10,7 @@ use Mdgascar\MdgUtils\ErrorCode;
 use Mdgascar\MdgUtils\Internal\DecimalText;
 use Mdgascar\MdgUtils\MdgUtilsException;
 use Mdgascar\MdgUtils\SafeParseResult;
+use Mdgascar\MdgUtils\Words\Internal\Cardinal;
 use Mdgascar\MdgUtils\Words\NumberSystem;
 use Mdgascar\MdgUtils\Words\NumberWords;
 
@@ -21,31 +22,62 @@ use Mdgascar\MdgUtils\Words\NumberWords;
  *     Ariary::fromInt(1500)->format();                   // 'Ar 1 500'
  *     Ariary::fromFloat(1500.5)->format();               // 'Ar 1 500,5'
  *     Ariary::fromInt(1500)->format(Grouping::Dot);      // 'Ar 1.500'
- *     Ariary::parse('1 500,50 Ar')->amount;              // 1500.5
- *     Ariary::fromInt(1500)->spell();                  // 'dimanjato sy arivo ariary'
- *     Ariary::fromFmg(7501)->amount;                     // 1500.2
+ *     Ariary::parse('1 500,50 Ar')->amount();            // 1500.5
+ *     Ariary::fromInt(1500)->spell();                    // 'dimanjato sy arivo ariary'
+ *     Ariary::fromFmg(7501)->amount();                   // 1500.2
+ *
+ * The amount is kept as its exact decimal `digits`, so nothing ever rounds: `amount()` gives an
+ * int or float only when it holds every digit.
  */
 final readonly class Ariary
 {
     private const string POINT = '.';
+    // Spec words rule 13: ASCII digits, then optionally a point and more digits.
+    private const string DECIMAL_TEXT = '/^[0-9]+(?:\.[0-9]+)?$/D';
 
     /**
-     * @param int|float $amount an int when whole, a float when it has decimals
+     * @param string $digits canonical decimal text: `'1500.5'`
      */
     private function __construct(
-        public int|float $amount,
+        public string $digits,
     ) {}
 
     /**
      * A whole amount, from 0 to PHP_INT_MAX (the spec sets no maximum).
      *
-     * Example: `Ariary::fromInt(1500)->amount` is `1500`.
+     * Example: `Ariary::fromInt(1500)->amount()` is `1500`.
      *
      * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0
      */
     public static function fromInt(int $amount): self
     {
         return new self(self::checked($amount));
+    }
+
+    /**
+     * An amount given as plain decimal text, read exactly and with no upper limit, at most 100
+     * characters (spec words rule 13).
+     *
+     * Example: `Ariary::fromText('1500.25')->format()` returns `'Ar 1 500,25'`.
+     *
+     * @throws MdgUtilsException with `ErrorCode::InvalidFormat` for text that is not plain decimal
+     */
+    public static function fromText(string $amount): self
+    {
+        return new self(self::checkedText($amount));
+    }
+
+    /**
+     * The amount as an int (whole) or float (with decimals).
+     *
+     * Example: `Ariary::parse('1 500,50 Ar')->amount()` returns `1500.5`.
+     *
+     * @throws MdgUtilsException with `ErrorCode::PrecisionLoss` when neither an int nor a float
+     *                          holds every digit; read `digits` instead
+     */
+    public function amount(): int|float
+    {
+        return self::exactNumber($this->digits);
     }
 
     /**
@@ -67,11 +99,11 @@ final readonly class Ariary
      * comma by default. For text in another convention, say so:
      * `Ariary::parse('1,500.50', Grouping::Comma, DecimalSeparator::Dot)`.
      *
-     * Example: `Ariary::parse('1 500,50 Ar')->amount` is `1500.5`.
+     * Example: `Ariary::parse('1 500,50 Ar')->amount()` is `1500.5`.
      *
      * @throws MdgUtilsException with `ErrorCode::InvalidFormat` (signs, a dot as decimal point by
-     *                          default), `ErrorCode::OutOfRange`, or `ErrorCode::InvalidType`
-     *                          when `$grouping` and `$decimal` are the same character
+     *                          default), or `ErrorCode::InvalidType` when `$grouping` and
+     *                          `$decimal` are the same character
      */
     public static function parse(string $text, ?Grouping $grouping = null, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): self
     {
@@ -113,14 +145,17 @@ final readonly class Ariary
     /**
      * Converts old Malagasy francs (FMG), whole or decimal: 5 FMG = 1 Ar, exactly in decimal.
      *
-     * Example: `Ariary::fromFmg(7501)->amount` is `1500.2`.
+     * Example: `Ariary::fromFmg(7501)->amount()` is `1500.2`.
      *
-     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0 or when too large,
-     *                          `ErrorCode::InvalidType` for NAN or INF
+     * @param int|float|string $francs a number, or plain decimal text read exactly
+     *
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0, `ErrorCode::InvalidType`
+     *                          for NAN or INF, `ErrorCode::InvalidFormat` for text that is not
+     *                          plain decimal
      */
-    public static function fromFmg(int|float $francs): self
+    public static function fromFmg(int|float|string $francs): self
     {
-        return new self(self::fromDecimal(DecimalText::divide(self::checked($francs), Data::FRANC_DIVISION_FACTOR)));
+        return new self(DecimalText::divide(self::anyDigits($francs), Data::FRANC_DIVISION_FACTOR));
     }
 
     /**
@@ -131,9 +166,9 @@ final readonly class Ariary
      * @throws MdgUtilsException with `ErrorCode::OutOfRange`, or `ErrorCode::InvalidType` for NAN,
      *                          INF, or the same character for grouping and decimal
      */
-    public static function formatFmg(int|float $francs, Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): string
+    public static function formatFmg(int|float|string $francs, Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): string
     {
-        return self::layOut(self::checked($francs), Data::FRANC_SYMBOL, $position, self::separators($grouping, $decimal));
+        return self::layOut(self::anyDigits($francs), Data::FRANC_SYMBOL, $position, self::separators($grouping, $decimal));
     }
 
     /**
@@ -146,7 +181,7 @@ final readonly class Ariary
      */
     public function format(Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): string
     {
-        return self::layOut($this->amount, Data::CURRENCY_SYMBOL, $position, self::separators($grouping, $decimal));
+        return self::layOut($this->digits, Data::CURRENCY_SYMBOL, $position, self::separators($grouping, $decimal));
     }
 
     /**
@@ -157,9 +192,9 @@ final readonly class Ariary
      */
     public function spell(NumberSystem $system = NumberSystem::Standard): string
     {
-        $words = NumberWords::spell($this->amount, $system);
+        $parts = explode(self::POINT, $this->digits);
 
-        return $words . ' ' . Data::CURRENCY_WORD;
+        return Cardinal::parts($parts[0], $parts[1] ?? null, $system) . ' ' . Data::CURRENCY_WORD;
     }
 
     /**
@@ -182,11 +217,22 @@ final readonly class Ariary
      *
      * Example: `Ariary::fromFloat(0.07)->toFmg()` returns `0.35` (never `0.35000000000000003`).
      *
-     * @throws MdgUtilsException with `ErrorCode::OutOfRange` when the francs would be too large to hold exactly
+     * @throws MdgUtilsException with `ErrorCode::PrecisionLoss` when neither an int nor a float
+     *                          holds the francs exactly; use `toFmgDigits()` instead
      */
     public function toFmg(): int|float
     {
-        return self::fromDecimal(DecimalText::multiply($this->amount, Data::FRANCS_PER_ARIARY));
+        return self::exactNumber($this->toFmgDigits());
+    }
+
+    /**
+     * The amount in old Malagasy francs as exact decimal text, of any size.
+     *
+     * Example: `Ariary::fromText('1500.07')->toFmgDigits()` returns `'7500.35'`.
+     */
+    public function toFmgDigits(): string
+    {
+        return DecimalText::multiply($this->digits, Data::FRANCS_PER_ARIARY);
     }
 
     private static function read(string $text, ?Grouping $grouping, DecimalSeparator $decimal): self|MdgUtilsException
@@ -195,36 +241,49 @@ final readonly class Ariary
             return self::sameSeparators();
         }
         $digits = AmountText::read($text, $grouping?->separator(), $decimal->separator());
-        if ($digits instanceof MdgUtilsException) {
-            return $digits;
-        }
-        $amount = DecimalText::toNumber($digits);
 
-        return $amount === null ? self::outOfRange() : new self($amount);
+        return $digits instanceof MdgUtilsException ? $digits : new self(DecimalText::canonical($digits));
     }
 
-    private static function fromDecimal(string $text): int|float
+    private static function exactNumber(string $digits): int|float
     {
-        return DecimalText::toNumber($text) ?? throw self::outOfRange();
+        return DecimalText::toNumber($digits) ?? throw new MdgUtilsException(
+            ErrorCode::PrecisionLoss,
+            \sprintf('%s does not fit an int or float exactly; read the exact digits instead.', $digits),
+        );
     }
 
-    // An int stays an int (it stops at PHP_INT_MAX by itself); a float must be finite and exact,
-    // and becomes an int when whole.
-    private static function checked(int|float $value): int|float
+    private static function anyDigits(int|float|string $value): string
+    {
+        return \is_string($value) ? self::checkedText($value) : self::checked($value);
+    }
+
+    private static function checkedText(string $text): string
+    {
+        if (\strlen($text) > Data::MAX_TEXT_LENGTH || preg_match(self::DECIMAL_TEXT, $text) !== 1) {
+            throw new MdgUtilsException(
+                ErrorCode::InvalidFormat,
+                \sprintf('Amount text is digits with an optional .decimals, at most %d characters.', Data::MAX_TEXT_LENGTH),
+            );
+        }
+
+        return DecimalText::canonical($text);
+    }
+
+    // A number's exact digits: an int as it is, a float finite and within its exact range.
+    private static function checked(int|float $value): string
     {
         if (\is_float($value) && !is_finite($value)) {
             throw new MdgUtilsException(ErrorCode::InvalidType, 'Amounts are finite numbers.');
         }
-        if ($value < Data::MIN_AMOUNT) {
-            throw new MdgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts start at %d.', Data::MIN_AMOUNT));
+        if ($value < Data::MIN_AMOUNT || (\is_float($value) && $value > DecimalText::MAX_EXACT_FLOAT_INTEGER)) {
+            throw new MdgUtilsException(
+                ErrorCode::OutOfRange,
+                \sprintf('Amounts go from %d to %d, or to %d with decimals.', Data::MIN_AMOUNT, PHP_INT_MAX, DecimalText::MAX_EXACT_FLOAT_INTEGER),
+            );
         }
 
-        return \is_int($value) ? $value : self::fromDecimal(DecimalText::plain($value));
-    }
-
-    private static function outOfRange(): MdgUtilsException
-    {
-        return new MdgUtilsException(ErrorCode::OutOfRange, \sprintf('Amounts go up to %d, or %d with decimals.', PHP_INT_MAX, DecimalText::MAX_EXACT_FLOAT_INTEGER));
+        return DecimalText::plain($value);
     }
 
     private static function sameSeparators(): MdgUtilsException
@@ -247,19 +306,19 @@ final readonly class Ariary
     /**
      * @param array{grouping: string, decimal: string} $separators
      */
-    private static function layOut(int|float $value, string $symbol, SymbolPosition $position, array $separators): string
+    private static function layOut(string $digits, string $symbol, SymbolPosition $position, array $separators): string
     {
-        $parts = explode(self::POINT, DecimalText::plain($value));
+        $parts = explode(self::POINT, $digits);
         // Split from the right: reverse, cut into groups, then restore each group and their order.
         $groups = array_map(strrev(...), array_reverse(str_split(strrev($parts[0]), Data::GROUP_SIZE)));
-        $digits = implode($separators['grouping'], $groups);
+        $text = implode($separators['grouping'], $groups);
         if (isset($parts[1])) {
-            $digits .= $separators['decimal'] . $parts[1];
+            $text .= $separators['decimal'] . $parts[1];
         }
 
         return match ($position) {
-            SymbolPosition::Before => $symbol . Data::SYMBOL_SEPARATOR . $digits,
-            SymbolPosition::After => $digits . Data::SYMBOL_SEPARATOR . $symbol,
+            SymbolPosition::Before => $symbol . Data::SYMBOL_SEPARATOR . $text,
+            SymbolPosition::After => $text . Data::SYMBOL_SEPARATOR . $symbol,
         };
     }
 }

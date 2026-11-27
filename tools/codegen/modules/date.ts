@@ -20,7 +20,11 @@ interface DateData {
     readonly abbreviation: string;
   }[];
   readonly styles: readonly { readonly id: string; readonly pattern: string }[];
-  readonly limits: { readonly minYear: number; readonly maxYear: number };
+  readonly limits: {
+    readonly minYear: number;
+    readonly maxYear: number;
+    readonly maxReadLength: number;
+  };
 }
 
 interface DateTables {
@@ -34,6 +38,7 @@ interface DateTables {
   readonly styles: readonly (readonly [string, string])[];
   readonly minYear: number;
   readonly maxYear: number;
+  readonly maxReadLength: number;
 }
 
 function byNumber<T>(
@@ -76,6 +81,7 @@ function dateTables(data: DateData): DateTables {
     styles: data.styles.map(({ id, pattern }) => [id, pattern] as const),
     minYear: data.limits.minYear,
     maxYear: data.limits.maxYear,
+    maxReadLength: data.limits.maxReadLength,
   };
 }
 
@@ -151,6 +157,7 @@ export function emit(data: DateData, source: string): PhpOutput[] {
           },
           { name: "MIN_YEAR", type: "int", value: tables.minYear },
           { name: "MAX_YEAR", type: "int", value: tables.maxYear },
+          { name: "MAX_READ_LENGTH", type: "int", value: tables.maxReadLength },
         ],
         source,
       ),
