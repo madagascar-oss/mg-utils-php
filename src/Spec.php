@@ -11,5 +11,5 @@ namespace Mdgascar\MdgUtils;
  */
 final class Spec
 {
-    public const string VERSION = '0.7.0';
+    public const string VERSION = '0.8.0';
 }

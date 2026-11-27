@@ -5,7 +5,7 @@
 
 Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
-Implements spec 0.7.0.
+Implements spec 0.8.0.
 
 **Docs and live playground (run PHP in your browser):** [mdgascar.github.io/mdg-utils-docs](https://mdgascar.github.io/mdg-utils-docs/docs/installation/using-composer/)
 
@@ -17,6 +17,11 @@ included as a git submodule at `spec/`. The JavaScript port is
 composer require mdgascar/mdg-utils
 ```
 
+Declare `declare(strict_types=1);` in the files that call the library. Without it, PHP turns a
+float passed to an `int` parameter into an int before the library sees it:
+`NumberWords::fromInt(2.5)` would silently read `2`. With it, that call is a `TypeError`. Use
+`fromFloat()` for decimals and `fromString()` for exact digits.
+
 ```php
 use Mdgascar\MdgUtils\Words\NumberSystem;
 use Mdgascar\MdgUtils\Words\NumberWords;
@@ -27,6 +32,10 @@ NumberWords::fromFloat(3.14); // "telo faingo efatra ambin'ny folo"
 
 // The traditional system names every power of ten (spec words rule 12).
 NumberWords::fromInt(30_000_000, NumberSystem::Traditional); // 'telo safatsiroa'
+
+// Floats keep about 15-17 significant digits; text keeps every digit (spec words rule 13).
+NumberWords::fromFloat(2_000_000_000_000_000.9); // 'iray sy roa tapitrisa lavitrisa' (the float)
+NumberWords::fromString('2000000000000000.9');   // 'roa tapitrisa lavitrisa faingo sivy'
 ```
 
 ```php

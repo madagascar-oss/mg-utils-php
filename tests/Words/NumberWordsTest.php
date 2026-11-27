@@ -26,6 +26,9 @@ final class NumberWordsTest extends TestCase
 
     // The same in the traditional system (rule 12), up to the derived 10¹⁸ name.
     private const string PHP_INT_MAX_TRADITIONAL_WORDS = 'fito sy valonjato sy dimy arivo sy fito alina sy fito hetsy sy efatra tapitrisa sy dimy safatsiroa sy valo tsitamboisa sy enina lavitrisa sy telo alinkisa sy roa tsitokotsiforohana sy fito tsihitanoanoa sy telo safatsiroafaharoa sy telo tsitamboisafaharoa sy roa lavitrisafaharoa sy roa alinkisafaharoa sy sivy tsipesimpeseninafaharoa';
+    // Rule 13: a float this large keeps no decimals; text keeps them.
+    private const string EXACT_TEXT = '2000000000000000.9';
+    private const string EXACT_TEXT_WORDS = 'roa tapitrisa lavitrisa faingo sivy';
     private const int TEN_TO_THE_16 = 10_000_000_000_000_000;
     private const int TEN_TO_THE_17 = 100_000_000_000_000_000;
     private const int TEN_TO_THE_18 = 1_000_000_000_000_000_000;
@@ -96,6 +99,22 @@ final class NumberWordsTest extends TestCase
                 self::assertDoesNotMatchRegularExpression(self::COUNT_ABOVE_NINE, $group);
             }
         }
+    }
+
+    public function testTextAndIntAgreeOnEveryInteger(): void
+    {
+        mt_srand(self::RANDOM_SEED);
+        for ($run = 0; $run < self::FUZZ_RUNS; ++$run) {
+            $value = mt_rand(0, PHP_INT_MAX);
+
+            self::assertSame(NumberWords::fromInt($value), NumberWords::fromString((string) $value));
+        }
+    }
+
+    public function testTextKeepsTheDecimalsAFloatLoses(): void
+    {
+        self::assertSame(self::EXACT_TEXT_WORDS, NumberWords::fromString(self::EXACT_TEXT));
+        self::assertNotSame(self::EXACT_TEXT_WORDS, NumberWords::fromFloat((float) self::EXACT_TEXT));
     }
 
     public function testFloatAndIntAgreeOnWholeNumbers(): void

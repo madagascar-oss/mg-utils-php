@@ -20,6 +20,8 @@ final class NumberWords
     private const string ONE = '1';
     private const string ZERO_DIGIT = '0';
     private const string DECIMAL_POINT = '.';
+    // Rule 13: ASCII digits, then optionally a point and more digits. Nothing else.
+    private const string DECIMAL_TEXT = '/^(?<whole>[0-9]+)(?:\.(?<decimals>[0-9]+))?$/D';
 
     /**
      * Writes a whole number in Malagasy words, smallest part first.
@@ -35,7 +37,31 @@ final class NumberWords
             throw self::outOfRange(PHP_INT_MAX);
         }
 
-        return self::wholeWords((string) $value, self::scales($system));
+        return self::words((string) $value, null, $system);
+    }
+
+    /**
+     * Writes plain decimal text in Malagasy words, reading every digit exactly: use it when a
+     * float would lose digits. `NumberWords::fromFloat(2_000_000_000_000_000.9)` cannot see the
+     * `.9` (the float is already `2.0E+15` + 1), but this can.
+     *
+     * Example: `NumberWords::fromString('2000000000000000.9')` returns
+     * `'roa tapitrisa lavitrisa faingo sivy'`.
+     *
+     * @throws MdgUtilsException with `ErrorCode::InvalidFormat` for text that is not digits with
+     *                          an optional `.decimals`, or longer than 100 characters
+     */
+    public static function fromString(string $text, NumberSystem $system = NumberSystem::Standard): string
+    {
+        if (\strlen($text) > Data::MAX_TEXT_LENGTH || preg_match(self::DECIMAL_TEXT, $text, $match) !== 1) {
+            throw new MdgUtilsException(
+                ErrorCode::InvalidFormat,
+                \sprintf('NumberWords reads digits with an optional .decimals, at most %d characters.', Data::MAX_TEXT_LENGTH),
+            );
+        }
+        $decimals = rtrim($match['decimals'] ?? '', self::ZERO_DIGIT);
+
+        return self::words($match['whole'], $decimals === '' ? null : $decimals, $system);
     }
 
     /**
@@ -57,14 +83,40 @@ final class NumberWords
         if ($value < Data::MIN_VALUE || $value > DecimalText::MAX_EXACT_FLOAT_INTEGER) {
             throw self::outOfRange(DecimalText::MAX_EXACT_FLOAT_INTEGER);
         }
-        $scales = self::scales($system);
         $parts = explode(self::DECIMAL_POINT, DecimalText::plain($value));
-        $words = self::wholeWords($parts[0], $scales);
-        if (!isset($parts[1])) {
+
+        return self::words($parts[0], $parts[1] ?? null, $system);
+    }
+
+    // The whole digits, then "faingo" and the decimals when there are any.
+    private static function words(string $whole, ?string $decimals, NumberSystem $system): string
+    {
+        $scales = self::scales($system);
+        $words = self::wholeWords($whole, self::tableFor($whole, $scales));
+        if ($decimals === null) {
             return $words;
         }
 
-        return \sprintf('%s %s %s', $words, Data::DECIMAL_SEPARATOR, self::decimalWords($parts[1], $scales));
+        return \sprintf('%s %s %s', $words, Data::DECIMAL_SEPARATOR, self::decimalWords($decimals, $scales));
+    }
+
+    /**
+     * Rule 12: a number longer than a table can name (the traditional names end at 10¹⁹ − 1) is
+     * read with the standard scales, which have no limit.
+     *
+     * @param non-empty-list<array{word: string, exponent: int, countDigits: int|null}> $scales
+     *
+     * @return non-empty-list<array{word: string, exponent: int, countDigits: int|null}>
+     */
+    private static function tableFor(string $digits, array $scales): array
+    {
+        $largest = $scales[\count($scales) - 1];
+        if ($largest['countDigits'] === null) {
+            return $scales;
+        }
+        $reach = $largest['exponent'] + $largest['countDigits'];
+
+        return \strlen(ltrim($digits, self::ZERO_DIGIT)) > $reach ? Data::SCALES : $scales;
     }
 
     /**
@@ -115,7 +167,7 @@ final class NumberWords
         $significant = ltrim($digits, self::ZERO_DIGIT);
         $zeros = array_fill(0, \strlen($digits) - \strlen($significant), Data::ZERO_WORD);
 
-        return implode(' ', [...$zeros, self::wholeWords($significant, $scales)]);
+        return implode(' ', [...$zeros, self::wholeWords($significant, self::tableFor($significant, $scales))]);
     }
 
     private static function digitAt(int $value, int $place): int

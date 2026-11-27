@@ -165,6 +165,21 @@ final readonly class Ariary
     }
 
     /**
+     * An amount given as plain decimal text, in Malagasy words followed by `ariary`, every digit
+     * exact: for amounts too long for an int or float, such as on legal documents. Formatted
+     * text (`'Ar 1 500'`) is read by `parse()` instead.
+     *
+     * Example: `Ariary::wordsFromString('2000000000000000.9')` returns
+     * `'roa tapitrisa lavitrisa faingo sivy ariary'`.
+     *
+     * @throws MdgUtilsException with `ErrorCode::InvalidFormat` for text that is not plain decimal
+     */
+    public static function wordsFromString(string $amount, NumberSystem $system = NumberSystem::Standard): string
+    {
+        return NumberWords::fromString($amount, $system) . ' ' . Data::CURRENCY_WORD;
+    }
+
+    /**
      * The amount in old Malagasy francs: 1 Ar = 5 FMG, exactly in decimal.
      *
      * Example: `Ariary::fromFloat(0.07)->toFmg()` returns `0.35` (never `0.35000000000000003`).

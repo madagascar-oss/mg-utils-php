@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Words\Generated;
 
 /**
- * Lookup tables from spec/modules/words/data.yaml (spec 0.7.0).
+ * Lookup tables from spec/modules/words/data.yaml (spec 0.8.0).
  *
  * @internal
  */
@@ -168,7 +168,7 @@ final class Data
         [
             'word' => 'tsipesimpeseninafaharoa',
             'exponent' => 18,
-            'countDigits' => null,
+            'countDigits' => 1,
         ],
     ];
 
@@ -181,4 +181,6 @@ final class Data
     public const string JOINER_BETWEEN_GROUPS = 'sy';
 
     public const int MIN_VALUE = 0;
+
+    public const int MAX_TEXT_LENGTH = 100;
 }

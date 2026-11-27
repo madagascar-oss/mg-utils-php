@@ -55,10 +55,12 @@ return [
     'formatAriary' => static fn(mixed $value, array $options = []): string => $amount($value)->format(...$layout($options)),
     // @phpstan-ignore argument.type
     'parseAriary' => static fn(mixed $text, array $options = []): int|float => Ariary::parse($text, ...$reading($options))->amount,
-    'ariaryToWords' => static fn(mixed $value, array $options = []): string => $amount($value)->toWords(
+    'ariaryToWords' => static function (mixed $value, array $options = []) use ($amount): string {
         // @phpstan-ignore argument.type
-        isset($options['system']) ? NumberSystem::from($options['system']) : NumberSystem::Standard,
-    ),
+        $system = isset($options['system']) ? NumberSystem::from($options['system']) : NumberSystem::Standard;
+
+        return is_string($value) ? Ariary::wordsFromString($value, $system) : $amount($value)->toWords($system);
+    },
     // @phpstan-ignore argument.type
     'fmgToAriary' => static fn(mixed $francs): int|float => Ariary::fromFmg($francs)->amount,
     'ariaryToFmg' => static fn(mixed $value): int|float => $amount($value)->toFmg(),
