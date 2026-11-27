@@ -6,6 +6,27 @@ version in the first heading below and creates the GitHub release; Packagist pic
 What changed in the behaviour itself is in the
 [spec changelog](https://mdgascar.github.io/mdg-utils-docs/docs/changelog/).
 
+## 0.10.0
+
+Implements spec 0.9.0.
+
+- **Breaking:** `Ariary` keeps the exact decimal `digits` of the amount, so nothing ever rounds.
+  The `amount` property is now the `amount()` method, which throws `ErrorCode::PrecisionLoss`
+  when an int or float cannot hold every digit (before: `ErrorCode::OutOfRange`, or a silently
+  rounded float). `toFmg()` throws the same way; `toFmgDigits()` gives the exact text.
+  `Ariary::fromText()`, `fromFmg()` and `formatFmg()` take decimal text. Reading takes up to 329
+  characters, so every formatted amount reads back.
+- **Breaking (spec):** a count before a group word is one phrase joined by `amby`:
+  `NumberWords::spell(201_000_000)` is `iraika amby roanjato tapitrisa` (it shared its words with
+  200 000 001).
+- `NumberWords::spellOrdinal()` (`fahatelo`), and `NumberWords::parse()` / `safeParse()` /
+  `tryParse()`, which read words back into an `ExactNumber` (`value()`, `digits`).
+  `ErrorCode::Ambiguous` for the rare words two numbers share.
+- `PhoneNumber` reads `036` (Yas) and fixed lines (`020`, `022`), with `type`
+  (`PhoneLineType`) and `area` (`PhoneArea`, the town of a geographic number, or `null`).
+  `Operator::Gulfsat` is new.
+- `MalagasyDate::parse()` / `safeParse()` / `tryParse()` read every style back.
+
 ## 0.9.0
 
 Implements spec 0.8.0.
