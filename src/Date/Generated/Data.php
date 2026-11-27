@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Date\Generated;
 
 /**
- * Lookup tables from spec/modules/date/data.yaml (spec 0.6.0).
+ * Lookup tables from spec/modules/date/data.yaml (spec 0.7.0).
  *
  * @internal
  */

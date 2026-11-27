@@ -6,6 +6,14 @@ version in the first heading below and creates the GitHub release; Packagist pic
 What changed in the behaviour itself is in the
 [spec changelog](https://mdgascar.github.io/mdg-utils-docs/docs/changelog/).
 
+## 0.8.0
+
+Implements spec 0.7.0.
+
+- `Words\NumberSystem` (`Standard`, `Traditional`): `NumberWords::fromInt($n, NumberSystem::Traditional)`,
+  `NumberWords::fromFloat()` and `Ariary::toWords()` take it and name every power of ten
+  (`30 000 000` → `telo safatsiroa`). `Standard` stays the default; its output is unchanged.
+
 ## 0.7.0
 
 First release on Packagist. Implements spec 0.6.0. PHP 8.3+, zero dependencies.

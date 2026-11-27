@@ -10,6 +10,7 @@ use Mdgascar\MdgUtils\ErrorCode;
 use Mdgascar\MdgUtils\Internal\DecimalText;
 use Mdgascar\MdgUtils\MdgUtilsException;
 use Mdgascar\MdgUtils\SafeParseResult;
+use Mdgascar\MdgUtils\Words\NumberSystem;
 use Mdgascar\MdgUtils\Words\NumberWords;
 
 /**
@@ -151,11 +152,14 @@ final readonly class Ariary
     /**
      * The amount in Malagasy words, followed by `ariary`; decimals follow `faingo`.
      *
-     * Example: `Ariary::fromFloat(1500.5)->toWords()` returns `'dimanjato sy arivo faingo dimy ariary'`.
+     * Example: `Ariary::fromFloat(1500.5)->toWords()` returns `'dimanjato sy arivo faingo dimy ariary'`;
+     * `Ariary::fromInt(30_000_000)->toWords(NumberSystem::Traditional)` returns `'telo safatsiroa ariary'`.
      */
-    public function toWords(): string
+    public function toWords(NumberSystem $system = NumberSystem::Standard): string
     {
-        $words = \is_int($this->amount) ? NumberWords::fromInt($this->amount) : NumberWords::fromFloat($this->amount);
+        $words = \is_int($this->amount)
+            ? NumberWords::fromInt($this->amount, $system)
+            : NumberWords::fromFloat($this->amount, $system);
 
         return $words . ' ' . Data::CURRENCY_WORD;
     }

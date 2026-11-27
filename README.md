@@ -5,7 +5,7 @@
 
 Malagasy number words, Madagascar mobile phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
-Implements spec 0.6.0.
+Implements spec 0.7.0.
 
 **Docs and live playground (run PHP in your browser):** [mdgascar.github.io/mdg-utils-docs](https://mdgascar.github.io/mdg-utils-docs/docs/installation/using-composer/)
 
@@ -18,11 +18,15 @@ composer require mdgascar/mdg-utils
 ```
 
 ```php
+use Mdgascar\MdgUtils\Words\NumberSystem;
 use Mdgascar\MdgUtils\Words\NumberWords;
 
 NumberWords::fromInt(21);   // 'iraika amby roapolo'
 NumberWords::fromInt(2026); // 'enina amby roapolo sy roa arivo'
 NumberWords::fromFloat(3.14); // "telo faingo efatra ambin'ny folo"
+
+// The traditional system names every power of ten (spec words rule 12).
+NumberWords::fromInt(30_000_000, NumberSystem::Traditional); // 'telo safatsiroa'
 ```
 
 ```php
