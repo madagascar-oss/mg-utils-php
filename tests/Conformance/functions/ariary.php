@@ -6,6 +6,7 @@ use Mdgascar\MdgUtils\Ariary\Ariary;
 use Mdgascar\MdgUtils\Ariary\DecimalSeparator;
 use Mdgascar\MdgUtils\Ariary\Grouping;
 use Mdgascar\MdgUtils\Ariary\SymbolPosition;
+use Mdgascar\MdgUtils\Words\NumberSystem;
 
 // Spec options → PHP enums. Unknown names raise ValueError, which this port reports as
 // INVALID_TYPE (docs/adr/0002).
@@ -54,7 +55,10 @@ return [
     'formatAriary' => static fn(mixed $value, array $options = []): string => $amount($value)->format(...$layout($options)),
     // @phpstan-ignore argument.type
     'parseAriary' => static fn(mixed $text, array $options = []): int|float => Ariary::parse($text, ...$reading($options))->amount,
-    'ariaryToWords' => static fn(mixed $value): string => $amount($value)->toWords(),
+    'ariaryToWords' => static fn(mixed $value, array $options = []): string => $amount($value)->toWords(
+        // @phpstan-ignore argument.type
+        isset($options['system']) ? NumberSystem::from($options['system']) : NumberSystem::Standard,
+    ),
     // @phpstan-ignore argument.type
     'fmgToAriary' => static fn(mixed $francs): int|float => Ariary::fromFmg($francs)->amount,
     'ariaryToFmg' => static fn(mixed $value): int|float => $amount($value)->toFmg(),
