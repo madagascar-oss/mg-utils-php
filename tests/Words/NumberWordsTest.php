@@ -22,7 +22,7 @@ final class NumberWordsTest extends TestCase
     // Largest integer a float holds exactly (JavaScript's Number.MAX_SAFE_INTEGER).
     private const int MAX_EXACT_FLOAT_INTEGER = 9_007_199_254_740_991;
     // PHP_INT_MAX on 64-bit, beyond the shared vectors: 9 223 372 036 × 10⁹ + 854 775 807.
-    private const string PHP_INT_MAX_WORDS = 'fito sy valonjato sy dimy arivo sy fito alina sy fito hetsy sy efatra amby dimampolo sy valonjato tapitrisa sy enina amby telopolo sy roa arivo sy fito alina sy telo hetsy sy telo amby roapolo sy roanjato tapitrisa sy sivy lavitrisa lavitrisa';
+    private const string PHP_INT_MAX_WORDS = 'fito sy valonjato sy dimy arivo sy fito alina sy fito hetsy sy efatra amby dimampolo amby valonjato tapitrisa sy enina amby telopolo amby roa arivo amby fito alina amby telo hetsy amby telo amby roapolo amby roanjato tapitrisa amby sivy lavitrisa lavitrisa';
 
     // The same in the traditional system (rule 12), up to the derived 10¹⁸ name.
     private const string PHP_INT_MAX_TRADITIONAL_WORDS = 'fito sy valonjato sy dimy arivo sy fito alina sy fito hetsy sy efatra tapitrisa sy dimy safatsiroa sy valo tsitamboisa sy enina lavitrisa sy telo alinkisa sy roa tsitokotsiforohana sy fito tsihitanoanoa sy telo safatsiroafaharoa sy telo tsitamboisafaharoa sy roa lavitrisafaharoa sy roa alinkisafaharoa sy sivy tsipesimpeseninafaharoa';

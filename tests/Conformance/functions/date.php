@@ -27,4 +27,10 @@ return [
         $weekday,
         $width === null ? NameWidth::Wide : NameWidth::from($width),
     ),
+    'parseDate' => static function (mixed $text, ?string $style = null): array {
+        // @phpstan-ignore argument.type
+        $date = MalagasyDate::parse($text, $style === null ? null : DateStyle::from($style));
+
+        return ['year' => $date->year, 'month' => $date->month, 'day' => $date->day];
+    },
 ];

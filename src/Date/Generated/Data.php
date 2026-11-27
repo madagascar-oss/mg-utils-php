@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Date\Generated;
 
 /**
- * Lookup tables from spec/modules/date/data.yaml (spec 0.8.0).
+ * Lookup tables from spec/modules/date/data.yaml (spec 0.9.0).
  *
  * @internal
  */
@@ -74,4 +74,6 @@ final class Data
     public const int MIN_YEAR = 1;
 
     public const int MAX_YEAR = 9999;
+
+    public const int MAX_READ_LENGTH = 64;
 }
