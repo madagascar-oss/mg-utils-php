@@ -172,16 +172,31 @@ final readonly class Ariary
     }
 
     /**
+     * Writes an amount in old francs with the ISO code `MGF` instead of the symbol `Fmg`.
+     *
+     * Example: `Ariary::formatFmgCode(7500)` returns `'MGF 7 500'`.
+     *
+     * @throws MdgUtilsException as `formatFmg()`
+     */
+    public static function formatFmgCode(int|float|string $francs, Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): string
+    {
+        return self::layOut(self::anyDigits($francs), Data::FRANC_CODE, $position, self::separators($grouping, $decimal));
+    }
+
+    /**
      * Writes the amount the Malagasy way: `Ar 1 500,5`, with no-break spaces between digit
      * groups and a comma before the decimals. Other conventions are opt-in.
      *
-     * Example: `Ariary::fromInt(1500)->format(Grouping::Dot, SymbolPosition::After)` returns `'1.500 Ar'`.
+     * Example: `Ariary::fromInt(1500)->format(Grouping::Dot, SymbolPosition::After)` returns `'1.500 Ar'`;
+     * `Ariary::fromInt(1500)->format(currency: CurrencyDisplay::Code)` returns `'MGA 1 500'`.
      *
      * @throws MdgUtilsException with `ErrorCode::InvalidType` when `$grouping` and `$decimal` are the same character
      */
-    public function format(Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before, DecimalSeparator $decimal = DecimalSeparator::DEFAULT): string
+    public function format(Grouping $grouping = Grouping::DEFAULT, SymbolPosition $position = SymbolPosition::Before, DecimalSeparator $decimal = DecimalSeparator::DEFAULT, CurrencyDisplay $currency = CurrencyDisplay::Symbol): string
     {
-        return self::layOut($this->digits, Data::CURRENCY_SYMBOL, $position, self::separators($grouping, $decimal));
+        $symbol = $currency === CurrencyDisplay::Code ? Data::CURRENCY_CODE : Data::CURRENCY_SYMBOL;
+
+        return self::layOut($this->digits, $symbol, $position, self::separators($grouping, $decimal));
     }
 
     /**

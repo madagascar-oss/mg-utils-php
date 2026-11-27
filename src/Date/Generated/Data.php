@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Date\Generated;
 
 /**
- * Lookup tables from spec/modules/date/data.yaml (spec 0.9.0).
+ * Lookup tables from spec/modules/date/data.yaml (spec 0.10.0).
  *
  * @internal
  */
@@ -76,4 +76,49 @@ final class Data
     public const int MAX_YEAR = 9999;
 
     public const int MAX_READ_LENGTH = 64;
+
+    public const int MAX_TIME_READ_LENGTH = 128;
+
+    public const string TIME_PREFIX = 'amin\'ny';
+
+    public const string TIME_AFTER = 'sy';
+
+    public const string TIME_BEFORE = 'latsaka';
+
+    public const string TIME_MORE = 'mahery';
+
+    /** @var array<int, string> */
+    public const array TIME_FRACTIONS = [
+        '15' => 'fahefany',
+        '20' => 'fahatelony',
+        '30' => 'sasany',
+    ];
+
+    /** @var list<string> */
+    public const array DAY_PARTS = [
+        'alina',
+        'maraina',
+        'maraina',
+        'maraina',
+        'maraina',
+        'maraina',
+        'maraina',
+        'maraina',
+        'maraina',
+        'maraina',
+        'maraina',
+        'maraina',
+        'atoandro',
+        'tolakandro',
+        'tolakandro',
+        'tolakandro',
+        'tolakandro',
+        'tolakandro',
+        'hariva',
+        'hariva',
+        'hariva',
+        'hariva',
+        'hariva',
+        'hariva',
+    ];
 }
