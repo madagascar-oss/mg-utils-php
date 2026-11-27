@@ -7,7 +7,7 @@ namespace Mdgascar\MdgUtils\Words;
 /**
  * How large numbers are named (spec words rule 12).
  *
- * Example: `NumberWords::fromInt(30_000_000, NumberSystem::Traditional)` returns
+ * Example: `NumberWords::spell(30_000_000, NumberSystem::Traditional)` returns
  * `'telo safatsiroa'`; with `NumberSystem::Standard` (the default) it is `'telopolo tapitrisa'`.
  */
 enum NumberSystem: string

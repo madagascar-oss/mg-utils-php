@@ -41,7 +41,7 @@ final class NumberWordsTest extends TestCase
     {
         mt_srand(self::RANDOM_SEED);
         for ($run = 0; $run < self::FUZZ_RUNS; ++$run) {
-            $words = NumberWords::fromInt(mt_rand(0, PHP_INT_MAX));
+            $words = NumberWords::spell(mt_rand(0, PHP_INT_MAX));
 
             self::assertMatchesRegularExpression(self::WORDS_ONLY, $words);
             self::assertDoesNotMatchRegularExpression(self::BROKEN_JOIN, $words);
@@ -53,7 +53,7 @@ final class NumberWordsTest extends TestCase
         mt_srand(self::RANDOM_SEED);
         for ($run = 0; $run < self::FUZZ_RUNS; ++$run) {
             $value = mt_rand() / mt_getrandmax() * mt_rand(1, self::MAX_EXACT_FLOAT_INTEGER);
-            $words = NumberWords::fromFloat($value);
+            $words = NumberWords::spell($value);
 
             self::assertMatchesRegularExpression(self::WORDS_ONLY, $words);
             self::assertDoesNotMatchRegularExpression(self::BROKEN_JOIN, $words);
@@ -63,7 +63,7 @@ final class NumberWordsTest extends TestCase
 
     public function testSpellsPhpIntMax(): void
     {
-        self::assertSame(self::PHP_INT_MAX_WORDS, NumberWords::fromInt(PHP_INT_MAX));
+        self::assertSame(self::PHP_INT_MAX_WORDS, NumberWords::spell(PHP_INT_MAX));
     }
 
     /**
@@ -79,19 +79,19 @@ final class NumberWordsTest extends TestCase
     #[DataProvider('derivedTraditionalNames')]
     public function testUsesTheDerivedTraditionalNamesBeyondTheSharedVectors(int $value, string $words): void
     {
-        self::assertSame($words, NumberWords::fromInt($value, NumberSystem::Traditional));
+        self::assertSame($words, NumberWords::spell($value, NumberSystem::Traditional));
     }
 
     public function testSpellsPhpIntMaxInTheTraditionalSystem(): void
     {
-        self::assertSame(self::PHP_INT_MAX_TRADITIONAL_WORDS, NumberWords::fromInt(PHP_INT_MAX, NumberSystem::Traditional));
+        self::assertSame(self::PHP_INT_MAX_TRADITIONAL_WORDS, NumberWords::spell(PHP_INT_MAX, NumberSystem::Traditional));
     }
 
     public function testEveryTraditionalPowerTakesASingleDigit(): void
     {
         mt_srand(self::RANDOM_SEED);
         for ($run = 0; $run < self::FUZZ_RUNS; ++$run) {
-            $words = NumberWords::fromInt(mt_rand(0, PHP_INT_MAX), NumberSystem::Traditional);
+            $words = NumberWords::spell(mt_rand(0, PHP_INT_MAX), NumberSystem::Traditional);
 
             self::assertMatchesRegularExpression(self::WORDS_ONLY, $words);
             self::assertDoesNotMatchRegularExpression(self::BROKEN_JOIN, $words);
@@ -107,21 +107,21 @@ final class NumberWordsTest extends TestCase
         for ($run = 0; $run < self::FUZZ_RUNS; ++$run) {
             $value = mt_rand(0, PHP_INT_MAX);
 
-            self::assertSame(NumberWords::fromInt($value), NumberWords::fromString((string) $value));
+            self::assertSame(NumberWords::spell($value), NumberWords::spell((string) $value));
         }
     }
 
     public function testTextKeepsTheDecimalsAFloatLoses(): void
     {
-        self::assertSame(self::EXACT_TEXT_WORDS, NumberWords::fromString(self::EXACT_TEXT));
-        self::assertNotSame(self::EXACT_TEXT_WORDS, NumberWords::fromFloat((float) self::EXACT_TEXT));
+        self::assertSame(self::EXACT_TEXT_WORDS, NumberWords::spell(self::EXACT_TEXT));
+        self::assertNotSame(self::EXACT_TEXT_WORDS, NumberWords::spell((float) self::EXACT_TEXT));
     }
 
     public function testFloatAndIntAgreeOnWholeNumbers(): void
     {
         self::assertSame(
-            NumberWords::fromInt(self::MAX_EXACT_FLOAT_INTEGER),
-            NumberWords::fromFloat((float) self::MAX_EXACT_FLOAT_INTEGER),
+            NumberWords::spell(self::MAX_EXACT_FLOAT_INTEGER),
+            NumberWords::spell((float) self::MAX_EXACT_FLOAT_INTEGER),
         );
     }
 
@@ -130,14 +130,14 @@ final class NumberWordsTest extends TestCase
      */
     public static function rejectedInputs(): iterable
     {
-        yield 'negative int' => [static fn(): string => NumberWords::fromInt(-1), ErrorCode::OutOfRange];
-        yield 'negative float' => [static fn(): string => NumberWords::fromFloat(self::NEGATIVE_DECIMAL), ErrorCode::OutOfRange];
+        yield 'negative int' => [static fn(): string => NumberWords::spell(-1), ErrorCode::OutOfRange];
+        yield 'negative float' => [static fn(): string => NumberWords::spell(self::NEGATIVE_DECIMAL), ErrorCode::OutOfRange];
         yield 'float above exact integers' => [
-            static fn(): string => NumberWords::fromFloat((float) PHP_INT_MAX),
+            static fn(): string => NumberWords::spell((float) PHP_INT_MAX),
             ErrorCode::OutOfRange,
         ];
-        yield 'NAN' => [static fn(): string => NumberWords::fromFloat(NAN), ErrorCode::InvalidType];
-        yield 'INF' => [static fn(): string => NumberWords::fromFloat(INF), ErrorCode::InvalidType];
+        yield 'NAN' => [static fn(): string => NumberWords::spell(NAN), ErrorCode::InvalidType];
+        yield 'INF' => [static fn(): string => NumberWords::spell(INF), ErrorCode::InvalidType];
     }
 
     /**

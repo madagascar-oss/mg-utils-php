@@ -17,25 +17,25 @@ included as a git submodule at `spec/`. The JavaScript port is
 composer require mdgascar/mdg-utils
 ```
 
-Declare `declare(strict_types=1);` in the files that call the library. Without it, PHP turns a
-float passed to an `int` parameter into an int before the library sees it:
-`NumberWords::fromInt(2.5)` would silently read `2`. With it, that call is a `TypeError`. Use
-`fromFloat()` for decimals and `fromString()` for exact digits.
+`NumberWords::spell()` takes an int, a float or decimal text, and keeps each as it is:
+`spell(2.5)` reads `roa faingo dimy`. Declare `declare(strict_types=1);` in the files that call
+the library anyway: other methods take an `int`, and without it PHP quietly turns a float such
+as `2.5` into `2` before the library sees it.
 
 ```php
 use Mdgascar\MdgUtils\Words\NumberSystem;
 use Mdgascar\MdgUtils\Words\NumberWords;
 
-NumberWords::fromInt(21);   // 'iraika amby roapolo'
-NumberWords::fromInt(2026); // 'enina amby roapolo sy roa arivo'
-NumberWords::fromFloat(3.14); // "telo faingo efatra ambin'ny folo"
+NumberWords::spell(21);   // 'iraika amby roapolo'
+NumberWords::spell(2026); // 'enina amby roapolo sy roa arivo'
+NumberWords::spell(3.14); // "telo faingo efatra ambin'ny folo"
 
 // The traditional system names every power of ten (spec words rule 12).
-NumberWords::fromInt(30_000_000, NumberSystem::Traditional); // 'telo safatsiroa'
+NumberWords::spell(30_000_000, NumberSystem::Traditional); // 'telo safatsiroa'
 
 // Floats keep about 15-17 significant digits; text keeps every digit (spec words rule 13).
-NumberWords::fromFloat(2_000_000_000_000_000.9); // 'iray sy roa tapitrisa lavitrisa' (the float)
-NumberWords::fromString('2000000000000000.9');   // 'roa tapitrisa lavitrisa faingo sivy'
+NumberWords::spell(2_000_000_000_000_000.9); // 'iray sy roa tapitrisa lavitrisa' (the float)
+NumberWords::spell('2000000000000000.9');   // 'roa tapitrisa lavitrisa faingo sivy'
 ```
 
 ```php
@@ -64,7 +64,7 @@ Ariary::parse('1.500 Ar')->amount;            // 1500
 Ariary::parse('1 500,50 Ar')->amount;         // 1500.5
 Ariary::parse('1,500.50', Grouping::Comma, DecimalSeparator::Dot)->amount; // 1500.5 (opt-in)
 Ariary::safeParse('1.5')->error?->errorCode;  // ErrorCode::InvalidFormat
-Ariary::fromInt(1500)->toWords();             // 'dimanjato sy arivo ariary'
+Ariary::fromInt(1500)->spell();             // 'dimanjato sy arivo ariary'
 Ariary::fromFmg(7501)->amount;                // 1500.2
 Ariary::fromFloat(0.07)->toFmg();             // 0.35 (exact)
 ```

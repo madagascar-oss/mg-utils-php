@@ -10,7 +10,12 @@ What changed in the behaviour itself is in the
 
 Implements spec 0.8.0.
 
-- `NumberWords::fromString('2000000000000000.9')` and `Ariary::wordsFromString()` read plain
+- **Breaking:** the API uses the domain's words. `NumberWords::spell(int|float|string)` replaces
+  `fromInt()`, `fromFloat()` and the unreleased `fromString()`; `Ariary->spell()` replaces
+  `->toWords()`, and `Ariary::spellText()` reads exact decimal text. A float passed to `spell()`
+  stays a float (`spell(2.5)` is `roa faingo dimy`), so the `fromInt(2.5)` truncation trap is gone.
+
+- `NumberWords::spell('2000000000000000.9')` and `Ariary::spellText()` read plain
   decimal text exactly, where a float has already lost digits. Text that is not digits with an
   optional `.decimals`, or longer than 100 characters, is `ErrorCode::InvalidFormat`.
 - In `NumberSystem::Traditional`, a number of 10¹⁹ or more (text only) is written in the

@@ -22,7 +22,7 @@ use Mdgascar\MdgUtils\Words\NumberWords;
  *     Ariary::fromFloat(1500.5)->format();               // 'Ar 1 500,5'
  *     Ariary::fromInt(1500)->format(Grouping::Dot);      // 'Ar 1.500'
  *     Ariary::parse('1 500,50 Ar')->amount;              // 1500.5
- *     Ariary::fromInt(1500)->toWords();                  // 'dimanjato sy arivo ariary'
+ *     Ariary::fromInt(1500)->spell();                  // 'dimanjato sy arivo ariary'
  *     Ariary::fromFmg(7501)->amount;                     // 1500.2
  */
 final readonly class Ariary
@@ -152,14 +152,12 @@ final readonly class Ariary
     /**
      * The amount in Malagasy words, followed by `ariary`; decimals follow `faingo`.
      *
-     * Example: `Ariary::fromFloat(1500.5)->toWords()` returns `'dimanjato sy arivo faingo dimy ariary'`;
-     * `Ariary::fromInt(30_000_000)->toWords(NumberSystem::Traditional)` returns `'telo safatsiroa ariary'`.
+     * Example: `Ariary::fromFloat(1500.5)->spell()` returns `'dimanjato sy arivo faingo dimy ariary'`;
+     * `Ariary::fromInt(30_000_000)->spell(NumberSystem::Traditional)` returns `'telo safatsiroa ariary'`.
      */
-    public function toWords(NumberSystem $system = NumberSystem::Standard): string
+    public function spell(NumberSystem $system = NumberSystem::Standard): string
     {
-        $words = \is_int($this->amount)
-            ? NumberWords::fromInt($this->amount, $system)
-            : NumberWords::fromFloat($this->amount, $system);
+        $words = NumberWords::spell($this->amount, $system);
 
         return $words . ' ' . Data::CURRENCY_WORD;
     }
@@ -169,14 +167,14 @@ final readonly class Ariary
      * exact: for amounts too long for an int or float, such as on legal documents. Formatted
      * text (`'Ar 1 500'`) is read by `parse()` instead.
      *
-     * Example: `Ariary::wordsFromString('2000000000000000.9')` returns
+     * Example: `Ariary::spellText('2000000000000000.9')` returns
      * `'roa tapitrisa lavitrisa faingo sivy ariary'`.
      *
      * @throws MdgUtilsException with `ErrorCode::InvalidFormat` for text that is not plain decimal
      */
-    public static function wordsFromString(string $amount, NumberSystem $system = NumberSystem::Standard): string
+    public static function spellText(string $amount, NumberSystem $system = NumberSystem::Standard): string
     {
-        return NumberWords::fromString($amount, $system) . ' ' . Data::CURRENCY_WORD;
+        return NumberWords::spell($amount, $system) . ' ' . Data::CURRENCY_WORD;
     }
 
     /**
