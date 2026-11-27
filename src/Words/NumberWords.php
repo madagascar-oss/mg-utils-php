@@ -24,17 +24,18 @@ final class NumberWords
     /**
      * Writes a whole number in Malagasy words, smallest part first.
      *
-     * Example: `NumberWords::fromInt(2026)` returns `'enina amby roapolo sy roa arivo'`.
+     * Example: `NumberWords::fromInt(2026)` returns `'enina amby roapolo sy roa arivo'`;
+     * `NumberWords::fromInt(30_000_000, NumberSystem::Traditional)` returns `'telo safatsiroa'`.
      *
      * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0
      */
-    public static function fromInt(int $value): string
+    public static function fromInt(int $value, NumberSystem $system = NumberSystem::Standard): string
     {
         if ($value < Data::MIN_VALUE) {
             throw self::outOfRange(PHP_INT_MAX);
         }
 
-        return self::wholeWords((string) $value);
+        return self::wholeWords((string) $value, self::scales($system));
     }
 
     /**
@@ -43,11 +44,12 @@ final class NumberWords
      * form that reads back as the same float, so `1.0` has none.
      *
      * Example: `NumberWords::fromFloat(3.14)` returns `"telo faingo efatra ambin'ny folo"`.
+     * In `NumberSystem::Traditional` the decimals are read in the same system.
      *
      * @throws MdgUtilsException with `ErrorCode::InvalidType` for NAN or INF,
      *                          `ErrorCode::OutOfRange` below 0 or above 9 007 199 254 740 991
      */
-    public static function fromFloat(float $value): string
+    public static function fromFloat(float $value, NumberSystem $system = NumberSystem::Standard): string
     {
         if (!is_finite($value)) {
             throw new MdgUtilsException(ErrorCode::InvalidType, 'NumberWords expects a finite number.');
@@ -55,13 +57,25 @@ final class NumberWords
         if ($value < Data::MIN_VALUE || $value > DecimalText::MAX_EXACT_FLOAT_INTEGER) {
             throw self::outOfRange(DecimalText::MAX_EXACT_FLOAT_INTEGER);
         }
+        $scales = self::scales($system);
         $parts = explode(self::DECIMAL_POINT, DecimalText::plain($value));
-        $words = self::wholeWords($parts[0]);
+        $words = self::wholeWords($parts[0], $scales);
         if (!isset($parts[1])) {
             return $words;
         }
 
-        return \sprintf('%s %s %s', $words, Data::DECIMAL_SEPARATOR, self::decimalWords($parts[1]));
+        return \sprintf('%s %s %s', $words, Data::DECIMAL_SEPARATOR, self::decimalWords($parts[1], $scales));
+    }
+
+    /**
+     * @return non-empty-list<array{word: string, exponent: int, countDigits: int|null}>
+     */
+    private static function scales(NumberSystem $system): array
+    {
+        return match ($system) {
+            NumberSystem::Standard => Data::SCALES,
+            NumberSystem::Traditional => Data::TRADITIONAL_SCALES,
+        };
     }
 
     private static function outOfRange(int $max): MdgUtilsException
@@ -72,28 +86,36 @@ final class NumberWords
         );
     }
 
-    // Works on decimal digits, not arithmetic, so counts and decimals of any length stay exact.
-    private static function wholeWords(string $digits): string
+    /**
+     * Works on decimal digits, not arithmetic, so counts and decimals of any length stay exact.
+     *
+     * @param non-empty-list<array{word: string, exponent: int, countDigits: int|null}> $scales
+     */
+    private static function wholeWords(string $digits, array $scales): string
     {
         $significant = ltrim($digits, self::ZERO_DIGIT);
         if ($significant === '') {
             return Data::ZERO_WORD;
         }
         $groups = [self::belowThousand((int) substr($significant, -self::BELOW_THOUSAND_DIGITS))];
-        foreach (Data::SCALES as $scale) {
-            $groups[] = self::scaleWords($significant, $scale);
+        foreach ($scales as $scale) {
+            $groups[] = self::scaleWords($significant, $scale, $scales);
         }
 
         return self::join($groups, Data::JOINER_BETWEEN_GROUPS);
     }
 
-    // Each leading zero after the point is "aotra"; the rest reads as a whole number.
-    private static function decimalWords(string $digits): string
+    /**
+     * Each leading zero after the point is "aotra"; the rest reads as a whole number.
+     *
+     * @param non-empty-list<array{word: string, exponent: int, countDigits: int|null}> $scales
+     */
+    private static function decimalWords(string $digits, array $scales): string
     {
         $significant = ltrim($digits, self::ZERO_DIGIT);
         $zeros = array_fill(0, \strlen($digits) - \strlen($significant), Data::ZERO_WORD);
 
-        return implode(' ', [...$zeros, self::wholeWords($significant)]);
+        return implode(' ', [...$zeros, self::wholeWords($significant, $scales)]);
     }
 
     private static function digitAt(int $value, int $place): int
@@ -156,17 +178,18 @@ final class NumberWords
      * tapitrisa". Counts are read with every rule, so 1000 lavitrisa is "arivo lavitrisa".
      *
      * @param array{word: string, exponent: int, countDigits: int|null} $scale
+     * @param non-empty-list<array{word: string, exponent: int, countDigits: int|null}> $scales
      */
-    private static function scaleWords(string $digits, array $scale): string
+    private static function scaleWords(string $digits, array $scale, array $scales): string
     {
         $count = self::scaleCount($digits, $scale);
         if ($count === '') {
             return '';
         }
-        if ($count === self::ONE && $scale['exponent'] === Data::SCALES[0]['exponent']) {
+        if ($count === self::ONE && $scale['exponent'] === $scales[0]['exponent']) {
             return $scale['word'];
         }
 
-        return self::wholeWords($count) . ' ' . $scale['word'];
+        return self::wholeWords($count, $scales) . ' ' . $scale['word'];
     }
 }

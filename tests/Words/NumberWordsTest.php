@@ -6,6 +6,7 @@ namespace Mdgascar\MdgUtils\Tests\Words;
 
 use Mdgascar\MdgUtils\ErrorCode;
 use Mdgascar\MdgUtils\MdgUtilsException;
+use Mdgascar\MdgUtils\Words\NumberSystem;
 use Mdgascar\MdgUtils\Words\NumberWords;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -22,6 +23,16 @@ final class NumberWordsTest extends TestCase
     private const int MAX_EXACT_FLOAT_INTEGER = 9_007_199_254_740_991;
     // PHP_INT_MAX on 64-bit, beyond the shared vectors: 9 223 372 036 × 10⁹ + 854 775 807.
     private const string PHP_INT_MAX_WORDS = 'fito sy valonjato sy dimy arivo sy fito alina sy fito hetsy sy efatra amby dimampolo sy valonjato tapitrisa sy enina amby telopolo sy roa arivo sy fito alina sy telo hetsy sy telo amby roapolo sy roanjato tapitrisa sy sivy lavitrisa lavitrisa';
+
+    // The same in the traditional system (rule 12), up to the derived 10¹⁸ name.
+    private const string PHP_INT_MAX_TRADITIONAL_WORDS = 'fito sy valonjato sy dimy arivo sy fito alina sy fito hetsy sy efatra tapitrisa sy dimy safatsiroa sy valo tsitamboisa sy enina lavitrisa sy telo alinkisa sy roa tsitokotsiforohana sy fito tsihitanoanoa sy telo safatsiroafaharoa sy telo tsitamboisafaharoa sy roa lavitrisafaharoa sy roa alinkisafaharoa sy sivy tsipesimpeseninafaharoa';
+    private const int TEN_TO_THE_16 = 10_000_000_000_000_000;
+    private const int TEN_TO_THE_17 = 100_000_000_000_000_000;
+    private const int TEN_TO_THE_18 = 1_000_000_000_000_000_000;
+    // Traditional groups, split on the joiner between groups.
+    private const string GROUP_JOINER = ' sy ';
+    // A tens, hundreds or thousand word right before a power name: a count above 9.
+    private const string COUNT_ABOVE_NINE = '/(polo|folo|zato|jato|arivo) (alina|hetsy|tapitrisa|safatsiroa|tsitamboisa|lavitrisa|alinkisa|tsipesimpesenina|tsitokotsiforohana|tsihitanoanoa)(faharoa)?$/';
 
     public function testReturnsWordsForRandomIntegers(): void
     {
@@ -50,6 +61,41 @@ final class NumberWordsTest extends TestCase
     public function testSpellsPhpIntMax(): void
     {
         self::assertSame(self::PHP_INT_MAX_WORDS, NumberWords::fromInt(PHP_INT_MAX));
+    }
+
+    /**
+     * @return iterable<string, array{int, string}>
+     */
+    public static function derivedTraditionalNames(): iterable
+    {
+        yield '10^16' => [self::TEN_TO_THE_16, 'iray lavitrisafaharoa'];
+        yield '10^17' => [self::TEN_TO_THE_17, 'iray alinkisafaharoa'];
+        yield '10^18' => [self::TEN_TO_THE_18, 'iray tsipesimpeseninafaharoa'];
+    }
+
+    #[DataProvider('derivedTraditionalNames')]
+    public function testUsesTheDerivedTraditionalNamesBeyondTheSharedVectors(int $value, string $words): void
+    {
+        self::assertSame($words, NumberWords::fromInt($value, NumberSystem::Traditional));
+    }
+
+    public function testSpellsPhpIntMaxInTheTraditionalSystem(): void
+    {
+        self::assertSame(self::PHP_INT_MAX_TRADITIONAL_WORDS, NumberWords::fromInt(PHP_INT_MAX, NumberSystem::Traditional));
+    }
+
+    public function testEveryTraditionalPowerTakesASingleDigit(): void
+    {
+        mt_srand(self::RANDOM_SEED);
+        for ($run = 0; $run < self::FUZZ_RUNS; ++$run) {
+            $words = NumberWords::fromInt(mt_rand(0, PHP_INT_MAX), NumberSystem::Traditional);
+
+            self::assertMatchesRegularExpression(self::WORDS_ONLY, $words);
+            self::assertDoesNotMatchRegularExpression(self::BROKEN_JOIN, $words);
+            foreach (explode(self::GROUP_JOINER, $words) as $group) {
+                self::assertDoesNotMatchRegularExpression(self::COUNT_ABOVE_NINE, $group);
+            }
+        }
     }
 
     public function testFloatAndIntAgreeOnWholeNumbers(): void
