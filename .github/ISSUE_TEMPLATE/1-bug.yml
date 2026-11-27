@@ -24,7 +24,7 @@ body:
     id: input
     attributes:
       label: Input
-      description: The exact call, e.g. `parsePhoneNumber('034 12 345 67')`.
+      description: The exact call, e.g. `parsePhone('034 12 345 67')`.
       render: ts
     validations:
       required: true

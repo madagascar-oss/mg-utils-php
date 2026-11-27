@@ -17,12 +17,12 @@ $toDate = static fn(mixed $date): MalagasyDate => is_array($date)
 return [
     'formatDate' => static fn(mixed $date, ?string $style = null): string => $toDate($date)
         ->format($style === null ? DateStyle::DEFAULT : DateStyle::from($style)),
-    'getMonthName' => static fn(mixed $month, ?string $width = null): string => MalagasyDate::monthName(
+    'monthName' => static fn(mixed $month, ?string $width = null): string => MalagasyDate::monthName(
         // @phpstan-ignore argument.type
         $month,
         $width === null ? NameWidth::Wide : NameWidth::from($width),
     ),
-    'getWeekdayName' => static fn(mixed $weekday, ?string $width = null): string => MalagasyDate::weekdayName(
+    'weekdayName' => static fn(mixed $weekday, ?string $width = null): string => MalagasyDate::weekdayName(
         // @phpstan-ignore argument.type
         $weekday,
         $width === null ? NameWidth::Wide : NameWidth::from($width),

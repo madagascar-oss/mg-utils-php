@@ -10,7 +10,7 @@ namespace Mdgascar\MdgUtils;
  * Example:
  *
  *     try {
- *         NumberWords::fromInt(-1);
+ *         NumberWords::spell(-1);
  *     } catch (MdgUtilsException $exception) {
  *         $exception->errorCode === ErrorCode::OutOfRange; // true
  *     }

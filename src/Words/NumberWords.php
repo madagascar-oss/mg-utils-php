@@ -24,14 +24,33 @@ final class NumberWords
     private const string DECIMAL_TEXT = '/^(?<whole>[0-9]+)(?:\.(?<decimals>[0-9]+))?$/D';
 
     /**
-     * Writes a whole number in Malagasy words, smallest part first.
+     * Spells a number in Malagasy words, smallest part first, with `faingo` before the decimals.
      *
-     * Example: `NumberWords::fromInt(2026)` returns `'enina amby roapolo sy roa arivo'`;
-     * `NumberWords::fromInt(30_000_000, NumberSystem::Traditional)` returns `'telo safatsiroa'`.
+     * - An int is read whole, up to `PHP_INT_MAX`.
+     * - A float is read with the decimals of its shortest exact form (`1.0` has none), up to
+     *   9 007 199 254 740 991; above about 15 significant digits a float has already lost
+     *   digits, so pass text instead.
+     * - Text is plain decimal digits (`'2000000000000000.9'`), read exactly, at most 100
+     *   characters (spec words rule 13).
      *
-     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0
+     * Examples: `NumberWords::spell(2026)` returns `'enina amby roapolo sy roa arivo'`,
+     * `NumberWords::spell(3.14)` returns `"telo faingo efatra ambin'ny folo"`,
+     * `NumberWords::spell(30_000_000, NumberSystem::Traditional)` returns `'telo safatsiroa'`.
+     *
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0 or above a float's exact
+     *                          range, `ErrorCode::InvalidType` for NAN or INF, or
+     *                          `ErrorCode::InvalidFormat` for text that is not plain decimal
      */
-    public static function fromInt(int $value, NumberSystem $system = NumberSystem::Standard): string
+    public static function spell(int|float|string $number, NumberSystem $system = NumberSystem::Standard): string
+    {
+        return match (true) {
+            \is_int($number) => self::spellInt($number, $system),
+            \is_float($number) => self::spellFloat($number, $system),
+            default => self::spellText($number, $system),
+        };
+    }
+
+    private static function spellInt(int $value, NumberSystem $system): string
     {
         if ($value < Data::MIN_VALUE) {
             throw self::outOfRange(PHP_INT_MAX);
@@ -40,18 +59,7 @@ final class NumberWords
         return self::words((string) $value, null, $system);
     }
 
-    /**
-     * Writes plain decimal text in Malagasy words, reading every digit exactly: use it when a
-     * float would lose digits. `NumberWords::fromFloat(2_000_000_000_000_000.9)` cannot see the
-     * `.9` (the float is already `2.0E+15` + 1), but this can.
-     *
-     * Example: `NumberWords::fromString('2000000000000000.9')` returns
-     * `'roa tapitrisa lavitrisa faingo sivy'`.
-     *
-     * @throws MdgUtilsException with `ErrorCode::InvalidFormat` for text that is not digits with
-     *                          an optional `.decimals`, or longer than 100 characters
-     */
-    public static function fromString(string $text, NumberSystem $system = NumberSystem::Standard): string
+    private static function spellText(string $text, NumberSystem $system): string
     {
         if (\strlen($text) > Data::MAX_TEXT_LENGTH || preg_match(self::DECIMAL_TEXT, $text, $match) !== 1) {
             throw new MdgUtilsException(
@@ -64,18 +72,7 @@ final class NumberWords
         return self::words($match['whole'], $decimals === '' ? null : $decimals, $system);
     }
 
-    /**
-     * Writes a number in Malagasy words, with `faingo` before the decimals, which are read as
-     * a whole number (each leading zero is `aotra`). The decimals are those of the shortest
-     * form that reads back as the same float, so `1.0` has none.
-     *
-     * Example: `NumberWords::fromFloat(3.14)` returns `"telo faingo efatra ambin'ny folo"`.
-     * In `NumberSystem::Traditional` the decimals are read in the same system.
-     *
-     * @throws MdgUtilsException with `ErrorCode::InvalidType` for NAN or INF,
-     *                          `ErrorCode::OutOfRange` below 0 or above 9 007 199 254 740 991
-     */
-    public static function fromFloat(float $value, NumberSystem $system = NumberSystem::Standard): string
+    private static function spellFloat(float $value, NumberSystem $system): string
     {
         if (!is_finite($value)) {
             throw new MdgUtilsException(ErrorCode::InvalidType, 'NumberWords expects a finite number.');
