@@ -6,6 +6,16 @@ version in the first heading below and creates the GitHub release; Packagist pic
 What changed in the behaviour itself is in the
 [spec changelog](https://mdgascar.github.io/mdg-utils-docs/docs/changelog/).
 
+## 0.9.0
+
+Implements spec 0.8.0.
+
+- `NumberWords::fromString('2000000000000000.9')` and `Ariary::wordsFromString()` read plain
+  decimal text exactly, where a float has already lost digits. Text that is not digits with an
+  optional `.decimals`, or longer than 100 characters, is `ErrorCode::InvalidFormat`.
+- In `NumberSystem::Traditional`, a number of 10¹⁹ or more (text only) is written in the
+  standard system.
+
 ## 0.8.0
 
 Implements spec 0.7.0.
