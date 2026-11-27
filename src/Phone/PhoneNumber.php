@@ -10,13 +10,15 @@ use Mdgascar\MdgUtils\Phone\Generated\Data;
 use Mdgascar\MdgUtils\SafeParseResult;
 
 /**
- * A Malagasy mobile number that passed validation.
+ * A Malagasy phone number, mobile or fixed, that passed validation.
  *
  * Example:
  *
  *     $phone = PhoneNumber::parse('034 12 345 67');
  *     $phone->e164;                                    // '+261341234567'
  *     $phone->operator;                                // Operator::Yas
+ *     $phone->type;                                    // PhoneLineType::Mobile
+ *     PhoneNumber::parse('020 53 123 45')->area?->name; // 'Toamasina'
  *     $phone->format(PhoneNumberFormat::International); // '+261 34 12 345 67'
  */
 final readonly class PhoneNumber
@@ -28,14 +30,20 @@ final readonly class PhoneNumber
     // A national significant number never starts with the trunk prefix 0 (ITU-T E.164).
     private const string NATIONAL_NUMBER_DIGITS = '/^[1-9][0-9]*$/';
 
+    public string $e164;
+    public ?PhoneArea $area;
+
     private function __construct(
-        public string $e164,
         public string $nationalNumber,
         public Operator $operator,
-    ) {}
+        public PhoneLineType $type,
+    ) {
+        $this->e164 = '+' . Data::COUNTRY_CODE . $nationalNumber;
+        $this->area = self::areaOf($nationalNumber);
+    }
 
     /**
-     * Reads a Malagasy mobile number written in any common way.
+     * Reads a Malagasy phone number, mobile or fixed, written in any common way.
      *
      * Accepts `034 12 345 67`, `+261 34 12 345 67`, `00261…`, `261…` and `34 12 345 67`.
      * Example: `PhoneNumber::parse('+261 34 12 345 67')->nationalNumber` is `'341234567'`.
@@ -111,12 +119,28 @@ final readonly class PhoneNumber
         if ($nationalNumber instanceof MdgUtilsException) {
             return $nationalNumber;
         }
-        $operatorId = Data::OPERATOR_BY_PREFIX[substr($nationalNumber, 0, Data::OPERATOR_PREFIX_LENGTH)] ?? null;
-        if ($operatorId === null) {
-            return new MdgUtilsException(ErrorCode::UnknownOperator, 'The prefix is not assigned to a Malagasy mobile operator.');
+        $prefix = substr($nationalNumber, 0, Data::OPERATOR_PREFIX_LENGTH);
+        $operatorId = Data::OPERATOR_BY_PREFIX[$prefix] ?? null;
+        $isUnassignedZone = $prefix === Data::FIXED_ZONE_PREFIX
+            && !\in_array($nationalNumber[Data::OPERATOR_PREFIX_LENGTH], Data::FIXED_ZONE_DIGITS, true);
+        if ($operatorId === null || $isUnassignedZone) {
+            return new MdgUtilsException(ErrorCode::UnknownOperator, 'The prefix is not assigned to a Malagasy operator.');
+        }
+        $type = \in_array($prefix, Data::FIXED_PREFIXES, true) ? PhoneLineType::Fixed : PhoneLineType::Mobile;
+
+        return new self($nationalNumber, Operator::from($operatorId), $type);
+    }
+
+    // The town of a geographic number, as the plan lists it; the longest prefix comes first.
+    private static function areaOf(string $nationalNumber): ?PhoneArea
+    {
+        foreach (Data::AREAS as $area) {
+            if (str_starts_with($nationalNumber, $area['prefix'])) {
+                return new PhoneArea($area['name'], $area['province']);
+            }
         }
 
-        return new self('+' . Data::COUNTRY_CODE . $nationalNumber, $nationalNumber, Operator::from($operatorId));
+        return null;
     }
 
     private static function readNationalNumber(string $input): string|MdgUtilsException

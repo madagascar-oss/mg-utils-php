@@ -30,7 +30,11 @@ interface AriaryData {
     readonly symbol: string;
     readonly francsPerAriary: number;
   };
-  readonly limits: { readonly min: number };
+  readonly limits: {
+    readonly min: number;
+    readonly maxTextLength: number;
+    readonly maxReadLength: number;
+  };
 }
 
 interface AriaryTables {
@@ -50,6 +54,8 @@ interface AriaryTables {
   /** 10 ÷ francsPerAriary: dividing by it is multiplying by this, then shifting one place. */
   readonly francDivisionFactor: number;
   readonly minAmount: number;
+  readonly maxTextLength: number;
+  readonly maxReadLength: number;
 }
 
 const DECIMAL_BASE = 10;
@@ -87,6 +93,8 @@ function ariaryTables(data: AriaryData): AriaryTables {
     francsPerAriary: data.legacyFranc.francsPerAriary,
     francDivisionFactor: divisionFactor(data.legacyFranc.francsPerAriary),
     minAmount: data.limits.min,
+    maxTextLength: data.limits.maxTextLength,
+    maxReadLength: data.limits.maxReadLength,
   };
 }
 
@@ -188,6 +196,8 @@ export function emit(data: AriaryData, source: string): PhpOutput[] {
             value: tables.francDivisionFactor,
           },
           { name: "MIN_AMOUNT", type: "int", value: tables.minAmount },
+          { name: "MAX_TEXT_LENGTH", type: "int", value: tables.maxTextLength },
+          { name: "MAX_READ_LENGTH", type: "int", value: tables.maxReadLength },
         ],
         source,
       ),

@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Ariary\Generated;
 
 /**
- * Lookup tables from spec/modules/ariary/data.yaml (spec 0.8.0).
+ * Lookup tables from spec/modules/ariary/data.yaml (spec 0.9.0).
  *
  * @internal
  */
@@ -43,4 +43,8 @@ final class Data
     public const int FRANC_DIVISION_FACTOR = 2;
 
     public const int MIN_AMOUNT = 0;
+
+    public const int MAX_TEXT_LENGTH = 100;
+
+    public const int MAX_READ_LENGTH = 329;
 }

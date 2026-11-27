@@ -50,9 +50,10 @@ final class DecimalText
     }
 
     /**
-     * `value × factor`, exactly, as decimal text: `multiply(0.07, 5)` → `'0.35'`.
+     * `value × factor`, exactly, as decimal text: `multiply(0.07, 5)` → `'0.35'`. Text is
+     * canonical decimal text.
      */
-    public static function multiply(int|float $value, int $factor): string
+    public static function multiply(int|float|string $value, int $factor): string
     {
         [$digits, $places] = self::scaled($value);
 
@@ -64,7 +65,7 @@ final class DecimalText
      * `10 ÷ divisor` (the division factor), then moves the point one place left.
      * `divide(7501, 2)` → `'1500.2'` (7501 ÷ 5).
      */
-    public static function divide(int|float $value, int $divisionFactor): string
+    public static function divide(int|float|string $value, int $divisionFactor): string
     {
         [$digits, $places] = self::scaled($value);
 
@@ -72,8 +73,8 @@ final class DecimalText
     }
 
     /**
-     * Decimal text as a value: an int when it is whole, else a float. Null when the value is
-     * too large to hold exactly (above PHP_INT_MAX, or above 9 007 199 254 740 991 with decimals).
+     * Decimal text as a value: an int when it is whole, else a float. Null when neither holds
+     * every digit (above PHP_INT_MAX, or decimals a float would round): never a rounded value.
      */
     public static function toNumber(string $text): int|float|null
     {
@@ -84,8 +85,43 @@ final class DecimalText
             return self::exceeds($whole, (string) PHP_INT_MAX) ? null : (int) $whole;
         }
         $value = (float) $text;
+        $exact = ($whole === '' ? self::ZERO : $whole) . self::POINT . $decimals;
 
-        return $value > self::MAX_EXACT_FLOAT_INTEGER ? null : $value;
+        return $value <= self::MAX_EXACT_FLOAT_INTEGER && self::plain($value) === $exact ? $value : null;
+    }
+
+    /**
+     * Canonical decimal text: no leading zeros, no trailing decimal zeros, no lone point.
+     * `'0012.50'` → `'12.5'`.
+     */
+    public static function canonical(string $text): string
+    {
+        $parts = explode(self::POINT, $text);
+        $whole = ltrim($parts[0], self::ZERO);
+        $whole = $whole === '' ? self::ZERO : $whole;
+        $decimals = rtrim($parts[1] ?? '', self::ZERO);
+
+        return $decimals === '' ? $whole : $whole . self::POINT . $decimals;
+    }
+
+    /**
+     * The sum of two whole digit texts, exactly: `add('999', '1')` → `'1000'`.
+     */
+    public static function add(string $left, string $right): string
+    {
+        $length = max(\strlen($left), \strlen($right));
+        $left = str_pad($left, $length, self::ZERO, \STR_PAD_LEFT);
+        $right = str_pad($right, $length, self::ZERO, \STR_PAD_LEFT);
+        $result = '';
+        $carry = 0;
+        for ($index = $length - 1; $index >= 0; --$index) {
+            $sum = (int) $left[$index] + (int) $right[$index] + $carry;
+            $result = (string) ($sum % self::BASE) . $result;
+            $carry = intdiv($sum, self::BASE);
+        }
+        $total = ltrim(($carry > 0 ? (string) $carry : '') . $result, self::ZERO);
+
+        return $total === '' ? self::ZERO : $total;
     }
 
     /**
@@ -100,9 +136,9 @@ final class DecimalText
     /**
      * @return array{string, int} all the digits as one integer, and how many come after the point
      */
-    private static function scaled(int|float $value): array
+    private static function scaled(int|float|string $value): array
     {
-        $parts = explode(self::POINT, self::plain($value));
+        $parts = explode(self::POINT, \is_string($value) ? $value : self::plain($value));
         $decimals = $parts[1] ?? '';
 
         return [$parts[0] . $decimals, \strlen($decimals)];

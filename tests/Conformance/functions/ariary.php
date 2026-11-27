@@ -37,33 +37,60 @@ $layout = static fn(array $options): array => [
  * @return array{?Grouping, DecimalSeparator}
  */
 $reading = static function (array $options) use ($grouping, $decimal): array {
-    if (array_diff(array_keys($options), ['grouping', 'decimal']) !== []) {
-        throw new ValueError('Reading takes only the grouping and decimal options.');
+    if (array_diff(array_keys($options), ['grouping', 'decimal', 'as']) !== []) {
+        throw new ValueError('Reading takes only the grouping, decimal and as options.');
     }
 
     return [$grouping($options), $decimal($options)];
 };
 
-// YAML floats (1.5, .nan) go to fromFloat, everything else to fromInt.
-$amount = static fn(mixed $value): Ariary => is_float($value)
-    ? Ariary::fromFloat($value)
+// The spec option `{as}`: the value (`number`, the default) or the exact digits (`text`).
+$isText = static function (array $options): bool {
+    if (array_diff(array_keys($options), ['as']) !== []) {
+        throw new ValueError('Converting takes only the as option.');
+    }
+
+    return match ($options['as'] ?? 'number') {
+        'number' => false,
+        'text' => true,
+        default => throw new ValueError('as is number or text.'),
+    };
+};
+
+// YAML floats (1.5, .nan) go to fromFloat, text to fromText, everything else to fromInt.
+$amount = static fn(mixed $value): Ariary => match (true) {
+    is_float($value) => Ariary::fromFloat($value),
+    is_string($value) => Ariary::fromText($value),
     // @phpstan-ignore argument.type
-    : Ariary::fromInt($value);
+    default => Ariary::fromInt($value),
+};
 
 // Arguments arrive untyped from YAML on purpose: wrong types fail with TypeError (INVALID_TYPE).
 return [
     'formatAriary' => static fn(mixed $value, array $options = []): string => $amount($value)->format(...$layout($options)),
-    // @phpstan-ignore argument.type
-    'parseAriary' => static fn(mixed $text, array $options = []): int|float => Ariary::parse($text, ...$reading($options))->amount,
+    'parseAriary' => static function (mixed $text, array $options = []) use ($reading, $isText): int|float|string {
+        // @phpstan-ignore argument.type
+        $amount = Ariary::parse($text, ...$reading($options));
+
+        return $isText(['as' => $options['as'] ?? 'number']) ? $amount->digits : $amount->amount();
+    },
     'spellAriary' => static function (mixed $value, array $options = []) use ($amount): string {
         // @phpstan-ignore argument.type
         $system = isset($options['system']) ? NumberSystem::from($options['system']) : NumberSystem::Standard;
 
         return is_string($value) ? Ariary::spellText($value, $system) : $amount($value)->spell($system);
     },
-    // @phpstan-ignore argument.type
-    'fmgToAriary' => static fn(mixed $francs): int|float => Ariary::fromFmg($francs)->amount,
-    'ariaryToFmg' => static fn(mixed $value): int|float => $amount($value)->toFmg(),
+    'fmgToAriary' => static function (mixed $francs, array $options = []) use ($isText): int|float|string {
+        // @phpstan-ignore argument.type
+        $amount = Ariary::fromFmg($francs);
+
+        return $isText($options) ? $amount->digits : $amount->amount();
+    },
+    'ariaryToFmg' => static function (mixed $value, array $options = []) use ($amount, $isText): int|float|string {
+        $ariary = $amount($value);
+
+        return $isText($options) ? $ariary->toFmgDigits() : $ariary->toFmg();
+    },
     // @phpstan-ignore argument.type
     'formatFmg' => static fn(mixed $francs, array $options = []): string => Ariary::formatFmg($francs, ...$layout($options)),
 ];

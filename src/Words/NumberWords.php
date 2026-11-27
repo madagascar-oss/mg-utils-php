@@ -5,23 +5,29 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Words;
 
 use Mdgascar\MdgUtils\ErrorCode;
+use Mdgascar\MdgUtils\ExactNumber;
 use Mdgascar\MdgUtils\Internal\DecimalText;
 use Mdgascar\MdgUtils\MdgUtilsException;
+use Mdgascar\MdgUtils\SafeParseResult;
 use Mdgascar\MdgUtils\Words\Generated\Data;
+use Mdgascar\MdgUtils\Words\Internal\Cardinal;
+use Mdgascar\MdgUtils\Words\Internal\WordsReader;
 
 /**
- * Malagasy number words.
+ * Malagasy number words: cardinals, ordinals, and words read back into numbers.
  */
 final class NumberWords
 {
-    private const int BASE = 10;
-    private const int HUNDRED = self::BASE * self::BASE;
-    private const int BELOW_THOUSAND_DIGITS = 3;
     private const string ONE = '1';
     private const string ZERO_DIGIT = '0';
     private const string DECIMAL_POINT = '.';
     // Rule 13: ASCII digits, then optionally a point and more digits. Nothing else.
     private const string DECIMAL_TEXT = '/^(?<whole>[0-9]+)(?:\.(?<decimals>[0-9]+))?$/D';
+    private const string DIGIT_TEXT = '/^[0-9]+$/D';
+    private const string SPACES = '/[\s\p{Zs}]+/u';
+    private const string APOSTROPHES = "/[\u{2018}\u{2019}\u{02BC}`\u{00B4}]/u";
+    // Older spellings of "ambin'ny" (dictionary: "ambin' ny"; Assimil: "amby ny").
+    private const string SPLIT_AMBINNY = "/\\bambin' ny\\b|\\bamby ny\\b/u";
 
     /**
      * Spells a number in Malagasy words, smallest part first, with `faingo` before the decimals.
@@ -88,43 +94,7 @@ final class NumberWords
     // The whole digits, then "faingo" and the decimals when there are any.
     private static function words(string $whole, ?string $decimals, NumberSystem $system): string
     {
-        $scales = self::scales($system);
-        $words = self::wholeWords($whole, self::tableFor($whole, $scales));
-        if ($decimals === null) {
-            return $words;
-        }
-
-        return \sprintf('%s %s %s', $words, Data::DECIMAL_SEPARATOR, self::decimalWords($decimals, $scales));
-    }
-
-    /**
-     * Rule 12: a number longer than a table can name (the traditional names end at 10¹⁹ − 1) is
-     * read with the standard scales, which have no limit.
-     *
-     * @param non-empty-list<array{word: string, exponent: int, countDigits: int|null}> $scales
-     *
-     * @return non-empty-list<array{word: string, exponent: int, countDigits: int|null}>
-     */
-    private static function tableFor(string $digits, array $scales): array
-    {
-        $largest = $scales[\count($scales) - 1];
-        if ($largest['countDigits'] === null) {
-            return $scales;
-        }
-        $reach = $largest['exponent'] + $largest['countDigits'];
-
-        return \strlen(ltrim($digits, self::ZERO_DIGIT)) > $reach ? Data::SCALES : $scales;
-    }
-
-    /**
-     * @return non-empty-list<array{word: string, exponent: int, countDigits: int|null}>
-     */
-    private static function scales(NumberSystem $system): array
-    {
-        return match ($system) {
-            NumberSystem::Standard => Data::SCALES,
-            NumberSystem::Traditional => Data::TRADITIONAL_SCALES,
-        };
+        return Cardinal::parts($whole, $decimals, $system);
     }
 
     private static function outOfRange(int $max): MdgUtilsException
@@ -136,109 +106,130 @@ final class NumberWords
     }
 
     /**
-     * Works on decimal digits, not arithmetic, so counts and decimals of any length stay exact.
+     * The Malagasy ordinal of a whole number: `faha` before the cardinal words, `fah` before a
+     * vowel, and `voalohany` for 1 (spec words rule 14).
      *
-     * @param non-empty-list<array{word: string, exponent: int, countDigits: int|null}> $scales
+     * Examples: `NumberWords::spellOrdinal(3)` returns `'fahatelo'`, `spellOrdinal(4)` returns
+     * `'fahefatra'`, `spellOrdinal(1)` returns `'voalohany'`.
+     *
+     * @param int|string $number a whole number from 1, or digit text read exactly
+     *
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 1, or
+     *                          `ErrorCode::InvalidFormat` for text that is not digits
      */
-    private static function wholeWords(string $digits, array $scales): string
+    public static function spellOrdinal(int|string $number, NumberSystem $system = NumberSystem::Standard): string
     {
-        $significant = ltrim($digits, self::ZERO_DIGIT);
-        if ($significant === '') {
-            return Data::ZERO_WORD;
+        if (\is_string($number) && (\strlen($number) > Data::MAX_TEXT_LENGTH || preg_match(self::DIGIT_TEXT, $number) !== 1)) {
+            throw new MdgUtilsException(
+                ErrorCode::InvalidFormat,
+                \sprintf('spellOrdinal reads whole digits, at most %d characters.', Data::MAX_TEXT_LENGTH),
+            );
         }
-        $groups = [self::belowThousand((int) substr($significant, -self::BELOW_THOUSAND_DIGITS))];
-        foreach ($scales as $scale) {
-            $groups[] = self::scaleWords($significant, $scale, $scales);
+        $digits = ltrim((string) $number, self::ZERO_DIGIT);
+        if ($digits === '' || $digits[0] === '-') {
+            throw new MdgUtilsException(ErrorCode::OutOfRange, 'Ordinals start at 1 (voalohany).');
         }
+        if ($digits === self::ONE) {
+            return Data::ORDINAL_FIRST;
+        }
+        $cardinal = Cardinal::whole($digits, $system);
+        $prefix = \in_array($cardinal[0], Data::VOWELS, true) ? Data::ORDINAL_PREFIX_BEFORE_VOWEL : Data::ORDINAL_PREFIX;
 
-        return self::join($groups, Data::JOINER_BETWEEN_GROUPS);
+        return $prefix . $cardinal;
     }
 
     /**
-     * Each leading zero after the point is "aotra"; the rest reads as a whole number.
+     * Reads Malagasy number words back into the number that `spell()` writes as them, in either
+     * system (spec words rule 15). Case, spacing, curly apostrophes and the older `ambin' ny`
+     * and `amby ny` do not matter.
      *
-     * @param non-empty-list<array{word: string, exponent: int, countDigits: int|null}> $scales
+     * Example: `NumberWords::parse('roa arivo')->value()` returns `2000`;
+     * `NumberWords::parse('folo lavitrisa lavitrisa')->digits` is `'10000000000000000000'`.
+     *
+     * @throws MdgUtilsException with `ErrorCode::InvalidFormat` for words `spell()` does not
+     *                          write, `ErrorCode::Ambiguous` for the rare words two numbers share
      */
-    private static function decimalWords(string $digits, array $scales): string
+    public static function parse(string $text): ExactNumber
     {
-        $significant = ltrim($digits, self::ZERO_DIGIT);
-        $zeros = array_fill(0, \strlen($digits) - \strlen($significant), Data::ZERO_WORD);
+        $result = self::read($text);
+        if ($result instanceof MdgUtilsException) {
+            throw $result;
+        }
 
-        return implode(' ', [...$zeros, self::wholeWords($significant, self::tableFor($significant, $scales))]);
-    }
-
-    private static function digitAt(int $value, int $place): int
-    {
-        return intdiv($value, $place) % self::BASE;
+        return $result;
     }
 
     /**
-     * @param list<string> $words
+     * Like `parse()`, but never throws.
+     *
+     * @return SafeParseResult<ExactNumber>
      */
-    private static function join(array $words, string $joiner): string
+    public static function safeParse(mixed $text): SafeParseResult
     {
-        return implode(" {$joiner} ", array_values(array_filter($words, static fn(string $word): bool => $word !== '')));
-    }
-
-    // Malagasy reads upwards: units, then tens, then hundreds. The smaller part joins exactly
-    // 100 with "amby" ("dimy amby zato") and 200–900 with "sy" ("dimy sy roanjato"); "iraika"
-    // replaces "iray" only right before "ambin'ny" or "amby".
-    private static function belowThousand(int $value): string
-    {
-        $units = self::digitAt($value, 1);
-        $tens = self::digitAt($value, self::BASE);
-        $hundreds = self::digitAt($value, self::HUNDRED);
-        $isOneBeforeAmby = $units === 1 && ($tens > 0 || $hundreds === 1);
-        $unitWord = $isOneBeforeAmby ? Data::UNIT_ONE_IN_COMPOUND : Data::UNIT_WORDS[$units];
-        $joiner = $hundreds === 1 ? Data::JOINER_BELOW_THOUSAND : Data::JOINER_BETWEEN_GROUPS;
-
-        return self::join([self::belowHundred($unitWord, $units, $tens), Data::HUNDRED_WORDS[$hundreds]], $joiner);
-    }
-
-    // 11–19 join with "ambin'ny"; other units join tens with "amby".
-    private static function belowHundred(string $unitWord, int $units, int $tens): string
-    {
-        if ($tens === 1 && $units > 0) {
-            return \sprintf('%s %s %s', $unitWord, Data::JOINER_UNITS_BEFORE_TEN, Data::TEN_WORDS[1]);
+        if (!\is_string($text)) {
+            return SafeParseResult::failure(new MdgUtilsException(ErrorCode::InvalidType, 'Expected the words as a string.'));
         }
+        $result = self::read($text);
 
-        return self::join([$unitWord, Data::TEN_WORDS[$tens]], Data::JOINER_BELOW_THOUSAND);
+        return $result instanceof MdgUtilsException ? SafeParseResult::failure($result) : SafeParseResult::success($result);
     }
 
     /**
-     * The digits a group counts, without leading zeros: '' when the group is absent. The
-     * largest group takes every digit left, so its count can be any size.
-     *
-     * @param array{word: string, exponent: int, countDigits: int|null} $scale
+     * Like `parse()`, but returns `null` instead of throwing.
      */
-    private static function scaleCount(string $digits, array $scale): string
+    public static function tryParse(mixed $text): ?ExactNumber
     {
-        $end = \strlen($digits) - $scale['exponent'];
-        if ($end <= 0) {
-            return '';
-        }
-        $start = $scale['countDigits'] === null ? 0 : max(0, $end - $scale['countDigits']);
+        return self::safeParse($text)->data;
+    }
 
-        return ltrim(substr($digits, $start, $end - $start), self::ZERO_DIGIT);
+    private static function read(string $text): ExactNumber|MdgUtilsException
+    {
+        if (\strlen($text) > Data::MAX_WORDS_LENGTH) {
+            return new MdgUtilsException(ErrorCode::InvalidFormat, \sprintf('Words are at most %d characters.', Data::MAX_WORDS_LENGTH));
+        }
+        $words = self::normalise($text);
+        $readings = self::spelledReadings($words);
+
+        return match (\count($readings)) {
+            0 => new MdgUtilsException(ErrorCode::InvalidFormat, 'Expected Malagasy number words, as spell() writes them.'),
+            1 => ExactNumber::fromDigits($readings[0]),
+            default => new MdgUtilsException(ErrorCode::Ambiguous, 'These words read as ' . implode(' and as ', $readings) . '.'),
+        };
+    }
+
+    // Case, apostrophes, spacing and older spellings do not change the number.
+    private static function normalise(string $text): string
+    {
+        $words = mb_strtolower(trim((string) preg_replace(self::SPACES, ' ', $text)));
+        $words = (string) preg_replace(self::APOSTROPHES, "'", $words);
+
+        return (string) preg_replace(self::SPLIT_AMBINNY, Data::JOINER_UNITS_BEFORE_TEN, $words);
     }
 
     /**
-     * A count of one is bare only for the first group: "arivo", but "iray alina", "iray
-     * tapitrisa". Counts are read with every rule, so 1000 lavitrisa is "arivo lavitrisa".
+     * Every exact value whose spelling is these words: one, none, or (rarely) more.
      *
-     * @param array{word: string, exponent: int, countDigits: int|null} $scale
-     * @param non-empty-list<array{word: string, exponent: int, countDigits: int|null}> $scales
+     * @return list<string>
      */
-    private static function scaleWords(string $digits, array $scale, array $scales): string
+    private static function spelledReadings(string $words): array
     {
-        $count = self::scaleCount($digits, $scale);
-        if ($count === '') {
-            return '';
-        }
-        if ($count === self::ONE && $scale['exponent'] === $scales[0]['exponent']) {
-            return $scale['word'];
+        $read = WordsReader::read($words);
+        $texts = [];
+        foreach ($read['wholes'] as $whole) {
+            foreach ($read['decimals'] ?? [''] as $decimals) {
+                $texts[] = DecimalText::canonical($decimals === '' ? $whole : $whole . self::DECIMAL_POINT . $decimals);
+            }
         }
 
-        return self::wholeWords($count, $scales) . ' ' . $scale['word'];
+        return array_values(array_filter(array_unique($texts), static function (string $text) use ($words): bool {
+            $parts = explode(self::DECIMAL_POINT, $text);
+            foreach (NumberSystem::cases() as $system) {
+                if (Cardinal::parts($parts[0], $parts[1] ?? null, $system) === $words) {
+                    return true;
+                }
+            }
+
+            return false;
+        }));
     }
 }

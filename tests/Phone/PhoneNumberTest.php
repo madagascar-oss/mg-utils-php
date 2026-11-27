@@ -107,6 +107,6 @@ final class PhoneNumberTest extends TestCase
     {
         $names = array_map(static fn(Operator $operator): string => $operator->displayName(), Operator::cases());
 
-        self::assertSame(['Orange Madagascar', 'Airtel Madagascar', 'Yas Madagascar', 'Blueline'], $names);
+        self::assertSame(['Orange Madagascar', 'Airtel Madagascar', 'Yas Madagascar', 'Blueline', 'Gulfsat Madagascar'], $names);
     }
 }
