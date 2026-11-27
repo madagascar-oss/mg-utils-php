@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Phone\Generated;
 
 /**
- * Lookup tables from spec/modules/phone/data.yaml (spec 0.7.0).
+ * Lookup tables from spec/modules/phone/data.yaml (spec 0.8.0).
  *
  * @internal
  */

@@ -14,7 +14,7 @@ interface WordsData {
   readonly joiners: Readonly<
     Record<"unitsBeforeTen" | "belowThousand" | "betweenGroups", Worded>
   >;
-  readonly limits: { readonly min: number };
+  readonly limits: { readonly min: number; readonly maxTextLength: number };
 }
 
 interface WordsTables {
@@ -30,6 +30,7 @@ interface WordsTables {
   readonly joinerBelowThousand: string;
   readonly joinerBetweenGroups: string;
   readonly minValue: number;
+  readonly maxTextLength: number;
 }
 
 // A group word, the power of ten it stands for, and how many digits its count takes
@@ -81,7 +82,8 @@ function scaleTable(scales: WordsData["scales"]): Scale[] {
 
 /**
  * Turns the traditional scales (rule 12) into the same shape: one digit per power of ten, each
- * the next power up, and the largest taking every digit left (no port reaches past it).
+ * the next power up. The largest takes one digit too, so the table ends at 10¹⁹ − 1; longer
+ * numbers are read with the standard scales instead.
  */
 function traditionalScaleTable(
   scales: WordsData["traditionalScales"],
@@ -92,9 +94,7 @@ function traditionalScaleTable(
     if (!POWER_OF_TEN.test(digits))
       throw new Error(`traditional scale ${word}: not a power of ten`);
     const next = sorted[index + 1];
-    if (next === undefined)
-      return { word, exponent: digits.length - 1, countDigits: null };
-    if (value * DECIMAL_BASE !== next.value) {
+    if (next !== undefined && value * DECIMAL_BASE !== next.value) {
       throw new Error(
         `traditional scale ${word}: the next name is not 10 times larger`,
       );
@@ -128,6 +128,7 @@ function wordsTables(data: WordsData): WordsTables {
     joinerBelowThousand: data.joiners.belowThousand.word,
     joinerBetweenGroups: data.joiners.betweenGroups.word,
     minValue: data.limits.min,
+    maxTextLength: data.limits.maxTextLength,
   };
 }
 
@@ -201,6 +202,11 @@ export function emit(data: WordsData, source: string): PhpOutput[] {
             value: tables.joinerBetweenGroups,
           },
           { name: "MIN_VALUE", type: "int", value: tables.minValue },
+          {
+            name: "MAX_TEXT_LENGTH",
+            type: "int",
+            value: tables.maxTextLength,
+          },
         ],
         source,
       ),

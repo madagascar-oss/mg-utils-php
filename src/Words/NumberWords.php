@@ -20,36 +20,59 @@ final class NumberWords
     private const string ONE = '1';
     private const string ZERO_DIGIT = '0';
     private const string DECIMAL_POINT = '.';
+    // Rule 13: ASCII digits, then optionally a point and more digits. Nothing else.
+    private const string DECIMAL_TEXT = '/^(?<whole>[0-9]+)(?:\.(?<decimals>[0-9]+))?$/D';
 
     /**
-     * Writes a whole number in Malagasy words, smallest part first.
+     * Spells a number in Malagasy words, smallest part first, with `faingo` before the decimals.
      *
-     * Example: `NumberWords::fromInt(2026)` returns `'enina amby roapolo sy roa arivo'`;
-     * `NumberWords::fromInt(30_000_000, NumberSystem::Traditional)` returns `'telo safatsiroa'`.
+     * - An int is read whole, up to `PHP_INT_MAX`.
+     * - A float is read with the decimals of its shortest exact form (`1.0` has none), up to
+     *   9 007 199 254 740 991; above about 15 significant digits a float has already lost
+     *   digits, so pass text instead.
+     * - Text is plain decimal digits (`'2000000000000000.9'`), read exactly, at most 100
+     *   characters (spec words rule 13).
      *
-     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0
+     * Examples: `NumberWords::spell(2026)` returns `'enina amby roapolo sy roa arivo'`,
+     * `NumberWords::spell(3.14)` returns `"telo faingo efatra ambin'ny folo"`,
+     * `NumberWords::spell(30_000_000, NumberSystem::Traditional)` returns `'telo safatsiroa'`.
+     *
+     * @throws MdgUtilsException with `ErrorCode::OutOfRange` below 0 or above a float's exact
+     *                          range, `ErrorCode::InvalidType` for NAN or INF, or
+     *                          `ErrorCode::InvalidFormat` for text that is not plain decimal
      */
-    public static function fromInt(int $value, NumberSystem $system = NumberSystem::Standard): string
+    public static function spell(int|float|string $number, NumberSystem $system = NumberSystem::Standard): string
+    {
+        return match (true) {
+            \is_int($number) => self::spellInt($number, $system),
+            \is_float($number) => self::spellFloat($number, $system),
+            default => self::spellText($number, $system),
+        };
+    }
+
+    private static function spellInt(int $value, NumberSystem $system): string
     {
         if ($value < Data::MIN_VALUE) {
             throw self::outOfRange(PHP_INT_MAX);
         }
 
-        return self::wholeWords((string) $value, self::scales($system));
+        return self::words((string) $value, null, $system);
     }
 
-    /**
-     * Writes a number in Malagasy words, with `faingo` before the decimals, which are read as
-     * a whole number (each leading zero is `aotra`). The decimals are those of the shortest
-     * form that reads back as the same float, so `1.0` has none.
-     *
-     * Example: `NumberWords::fromFloat(3.14)` returns `"telo faingo efatra ambin'ny folo"`.
-     * In `NumberSystem::Traditional` the decimals are read in the same system.
-     *
-     * @throws MdgUtilsException with `ErrorCode::InvalidType` for NAN or INF,
-     *                          `ErrorCode::OutOfRange` below 0 or above 9 007 199 254 740 991
-     */
-    public static function fromFloat(float $value, NumberSystem $system = NumberSystem::Standard): string
+    private static function spellText(string $text, NumberSystem $system): string
+    {
+        if (\strlen($text) > Data::MAX_TEXT_LENGTH || preg_match(self::DECIMAL_TEXT, $text, $match) !== 1) {
+            throw new MdgUtilsException(
+                ErrorCode::InvalidFormat,
+                \sprintf('NumberWords reads digits with an optional .decimals, at most %d characters.', Data::MAX_TEXT_LENGTH),
+            );
+        }
+        $decimals = rtrim($match['decimals'] ?? '', self::ZERO_DIGIT);
+
+        return self::words($match['whole'], $decimals === '' ? null : $decimals, $system);
+    }
+
+    private static function spellFloat(float $value, NumberSystem $system): string
     {
         if (!is_finite($value)) {
             throw new MdgUtilsException(ErrorCode::InvalidType, 'NumberWords expects a finite number.');
@@ -57,14 +80,40 @@ final class NumberWords
         if ($value < Data::MIN_VALUE || $value > DecimalText::MAX_EXACT_FLOAT_INTEGER) {
             throw self::outOfRange(DecimalText::MAX_EXACT_FLOAT_INTEGER);
         }
-        $scales = self::scales($system);
         $parts = explode(self::DECIMAL_POINT, DecimalText::plain($value));
-        $words = self::wholeWords($parts[0], $scales);
-        if (!isset($parts[1])) {
+
+        return self::words($parts[0], $parts[1] ?? null, $system);
+    }
+
+    // The whole digits, then "faingo" and the decimals when there are any.
+    private static function words(string $whole, ?string $decimals, NumberSystem $system): string
+    {
+        $scales = self::scales($system);
+        $words = self::wholeWords($whole, self::tableFor($whole, $scales));
+        if ($decimals === null) {
             return $words;
         }
 
-        return \sprintf('%s %s %s', $words, Data::DECIMAL_SEPARATOR, self::decimalWords($parts[1], $scales));
+        return \sprintf('%s %s %s', $words, Data::DECIMAL_SEPARATOR, self::decimalWords($decimals, $scales));
+    }
+
+    /**
+     * Rule 12: a number longer than a table can name (the traditional names end at 10¹⁹ − 1) is
+     * read with the standard scales, which have no limit.
+     *
+     * @param non-empty-list<array{word: string, exponent: int, countDigits: int|null}> $scales
+     *
+     * @return non-empty-list<array{word: string, exponent: int, countDigits: int|null}>
+     */
+    private static function tableFor(string $digits, array $scales): array
+    {
+        $largest = $scales[\count($scales) - 1];
+        if ($largest['countDigits'] === null) {
+            return $scales;
+        }
+        $reach = $largest['exponent'] + $largest['countDigits'];
+
+        return \strlen(ltrim($digits, self::ZERO_DIGIT)) > $reach ? Data::SCALES : $scales;
     }
 
     /**
@@ -115,7 +164,7 @@ final class NumberWords
         $significant = ltrim($digits, self::ZERO_DIGIT);
         $zeros = array_fill(0, \strlen($digits) - \strlen($significant), Data::ZERO_WORD);
 
-        return implode(' ', [...$zeros, self::wholeWords($significant, $scales)]);
+        return implode(' ', [...$zeros, self::wholeWords($significant, self::tableFor($significant, $scales))]);
     }
 
     private static function digitAt(int $value, int $place): int

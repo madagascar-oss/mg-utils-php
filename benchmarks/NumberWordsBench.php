@@ -13,16 +13,16 @@ final class NumberWordsBench
 
     public function benchSmall(): void
     {
-        NumberWords::fromInt(self::SMALL_NUMBER);
+        NumberWords::spell(self::SMALL_NUMBER);
     }
 
     public function benchDecimal(): void
     {
-        NumberWords::fromFloat(self::DECIMAL_NUMBER);
+        NumberWords::spell(self::DECIMAL_NUMBER);
     }
 
     public function benchLargest(): void
     {
-        NumberWords::fromInt(PHP_INT_MAX);
+        NumberWords::spell(PHP_INT_MAX);
     }
 }
