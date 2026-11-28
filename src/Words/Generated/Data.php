@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Words\Generated;
 
 /**
- * Lookup tables from spec/modules/words/data.yaml (spec 0.9.0).
+ * Lookup tables from spec/modules/words/data.yaml (spec 0.10.0).
  *
  * @internal
  */

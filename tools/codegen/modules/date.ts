@@ -20,10 +20,23 @@ interface DateData {
     readonly abbreviation: string;
   }[];
   readonly styles: readonly { readonly id: string; readonly pattern: string }[];
+  readonly time: {
+    readonly prefix: string;
+    readonly after: string;
+    readonly before: string;
+    readonly more: string;
+  };
+  readonly fractions: readonly { readonly minutes: number; readonly word: string }[];
+  readonly dayParts: readonly {
+    readonly from: number;
+    readonly to: number;
+    readonly word: string;
+  }[];
   readonly limits: {
     readonly minYear: number;
     readonly maxYear: number;
     readonly maxReadLength: number;
+    readonly maxTimeReadLength: number;
   };
 }
 
@@ -38,6 +51,10 @@ interface DateTables {
   readonly styles: readonly (readonly [string, string])[];
   readonly minYear: number;
   readonly maxYear: number;
+  readonly maxTimeReadLength: number;
+  readonly time: DateData["time"];
+  readonly fractions: Record<number, string>;
+  readonly dayParts: readonly string[];
   readonly maxReadLength: number;
 }
 
@@ -82,6 +99,12 @@ function dateTables(data: DateData): DateTables {
     minYear: data.limits.minYear,
     maxYear: data.limits.maxYear,
     maxReadLength: data.limits.maxReadLength,
+    maxTimeReadLength: data.limits.maxTimeReadLength,
+    time: data.time,
+    fractions: Object.fromEntries(
+      data.fractions.map(({ minutes, word }) => [minutes, word]),
+    ),
+    dayParts: dayPartByHour(data.dayParts),
   };
 }
 
@@ -123,6 +146,18 @@ ${patterns}
   );
 }
 
+const HOURS_PER_DAY = 24;
+
+/** The part of the day of each hour 0–23, checking the ranges cover every hour exactly once. */
+function dayPartByHour(parts: DateData["dayParts"]): string[] {
+  return Array.from({ length: HOURS_PER_DAY }, (_, hour) => {
+    const matches = parts.filter(({ from, to }) => hour >= from && hour <= to);
+    if (matches.length !== 1)
+      throw new Error(`day parts: hour ${String(hour)} is not covered once`);
+    return matches[0]?.word ?? "";
+  });
+}
+
 export function emit(data: DateData, source: string): PhpOutput[] {
   const tables = dateTables(data);
   return [
@@ -158,6 +193,27 @@ export function emit(data: DateData, source: string): PhpOutput[] {
           { name: "MIN_YEAR", type: "int", value: tables.minYear },
           { name: "MAX_YEAR", type: "int", value: tables.maxYear },
           { name: "MAX_READ_LENGTH", type: "int", value: tables.maxReadLength },
+          {
+            name: "MAX_TIME_READ_LENGTH",
+            type: "int",
+            value: tables.maxTimeReadLength,
+          },
+          { name: "TIME_PREFIX", type: "string", value: tables.time.prefix },
+          { name: "TIME_AFTER", type: "string", value: tables.time.after },
+          { name: "TIME_BEFORE", type: "string", value: tables.time.before },
+          { name: "TIME_MORE", type: "string", value: tables.time.more },
+          {
+            name: "TIME_FRACTIONS",
+            type: "array",
+            value: tables.fractions,
+            varDoc: "array<int, string>",
+          },
+          {
+            name: "DAY_PARTS",
+            type: "array",
+            value: tables.dayParts,
+            varDoc: "list<string>",
+          },
         ],
         source,
       ),

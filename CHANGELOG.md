@@ -6,6 +6,16 @@ version in the first heading below and creates the GitHub release; Packagist pic
 What changed in the behaviour itself is in the
 [spec changelog](https://mdgascar.github.io/mdg-utils-docs/docs/changelog/).
 
+## 0.11.0
+
+Implements spec 0.10.0.
+
+- `Date\MalagasyTime` says the time of day in Malagasy: `MalagasyTime::fromString('14:30')->spell()`
+  returns `amin'ny roa sy sasany tolakandro`. `parse()` / `safeParse()` / `tryParse()` read it
+  back; `fromParts()` and `fromDateTime()` build one.
+- `Ariary\CurrencyDisplay`: `->format(currency: CurrencyDisplay::Code)` writes `MGA 1 500`, and
+  `Ariary::formatFmgCode()` writes `MGF 7 500`.
+
 ## 0.10.0
 
 Implements spec 0.9.0.

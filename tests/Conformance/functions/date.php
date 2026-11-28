@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Mdgascar\MdgUtils\Date\DateStyle;
 use Mdgascar\MdgUtils\Date\MalagasyDate;
+use Mdgascar\MdgUtils\Date\MalagasyTime;
 use Mdgascar\MdgUtils\Date\NameWidth;
 
 // Arguments arrive untyped from YAML on purpose: wrong types fail with TypeError and unknown
@@ -32,5 +33,16 @@ return [
         $date = MalagasyDate::parse($text, $style === null ? null : DateStyle::from($style));
 
         return ['year' => $date->year, 'month' => $date->month, 'day' => $date->day];
+    },
+    'spellTime' => static fn(mixed $time): string => (is_array($time)
+        // @phpstan-ignore argument.type, argument.type
+        ? MalagasyTime::fromParts($time['hour'], $time['minute'])
+        // @phpstan-ignore argument.type
+        : MalagasyTime::fromString($time))->spell(),
+    'parseTime' => static function (mixed $text): array {
+        // @phpstan-ignore argument.type
+        $time = MalagasyTime::parse($text);
+
+        return ['hour' => $time->hour, 'minute' => $time->minute];
     },
 ];

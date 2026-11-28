@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Mdgascar\MdgUtils\Ariary\Ariary;
+use Mdgascar\MdgUtils\Ariary\CurrencyDisplay;
 use Mdgascar\MdgUtils\Ariary\DecimalSeparator;
 use Mdgascar\MdgUtils\Ariary\Grouping;
 use Mdgascar\MdgUtils\Ariary\SymbolPosition;
@@ -30,6 +31,9 @@ $layout = static fn(array $options): array => [
     SymbolPosition::from($options['symbolPosition'] ?? SymbolPosition::Before->value),
     $decimal($options),
 ];
+// Spec option `{currencyDisplay}` → `CurrencyDisplay`.
+// @phpstan-ignore argument.type
+$currency = static fn(array $options): CurrencyDisplay => CurrencyDisplay::from($options['currencyDisplay'] ?? CurrencyDisplay::Symbol->value);
 
 /**
  * Spec options `{grouping, decimal}` → the arguments of `parse()`. Reading takes no other option.
@@ -67,7 +71,7 @@ $amount = static fn(mixed $value): Ariary => match (true) {
 
 // Arguments arrive untyped from YAML on purpose: wrong types fail with TypeError (INVALID_TYPE).
 return [
-    'formatAriary' => static fn(mixed $value, array $options = []): string => $amount($value)->format(...$layout($options)),
+    'formatAriary' => static fn(mixed $value, array $options = []): string => $amount($value)->format(...[...$layout($options), $currency($options)]),
     'parseAriary' => static function (mixed $text, array $options = []) use ($reading, $isText): int|float|string {
         // @phpstan-ignore argument.type
         $amount = Ariary::parse($text, ...$reading($options));
@@ -91,6 +95,9 @@ return [
 
         return $isText($options) ? $ariary->toFmgDigits() : $ariary->toFmg();
     },
-    // @phpstan-ignore argument.type
-    'formatFmg' => static fn(mixed $francs, array $options = []): string => Ariary::formatFmg($francs, ...$layout($options)),
+    'formatFmg' => static fn(mixed $francs, array $options = []): string => $currency($options) === CurrencyDisplay::Code
+        // @phpstan-ignore argument.type
+        ? Ariary::formatFmgCode($francs, ...$layout($options))
+        // @phpstan-ignore argument.type
+        : Ariary::formatFmg($francs, ...$layout($options)),
 ];
