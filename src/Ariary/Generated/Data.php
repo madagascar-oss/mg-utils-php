@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Mdgascar\MdgUtils\Ariary\Generated;
 
 /**
- * Lookup tables from spec/modules/ariary/data.yaml (spec 0.9.0).
+ * Lookup tables from spec/modules/ariary/data.yaml (spec 0.10.0).
  *
  * @internal
  */
@@ -37,6 +37,10 @@ final class Data
     ];
 
     public const string FRANC_SYMBOL = 'Fmg';
+
+    public const string FRANC_CODE = 'MGF';
+
+    public const string CURRENCY_CODE = 'MGA';
 
     public const int FRANCS_PER_ARIARY = 5;
 

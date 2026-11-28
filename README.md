@@ -5,7 +5,7 @@
 
 Malagasy number words, Madagascar phone numbers, Ariary amounts and dates for PHP. Zero dependencies, PHP 8.3+.
 
-Implements spec 0.9.0.
+Implements spec 0.10.0.
 
 **Docs and live playground (run PHP in your browser):** [mdgascar.github.io/mdg-utils-docs](https://mdgascar.github.io/mdg-utils-docs/docs/installation/using-composer/)
 
@@ -57,12 +57,14 @@ PhoneNumber::parse('020 22 421 19')->area?->name; // 'Antananarivo' (fixed line)
 
 ```php
 use Mdgascar\MdgUtils\Ariary\Ariary;
+use Mdgascar\MdgUtils\Ariary\CurrencyDisplay;
 use Mdgascar\MdgUtils\Ariary\DecimalSeparator;
 use Mdgascar\MdgUtils\Ariary\Grouping;
 
 Ariary::fromInt(1500)->format();              // 'Ar 1 500' (no-break spaces, never a comma)
 Ariary::fromFloat(1500.5)->format();          // 'Ar 1 500,5' (decimal comma)
 Ariary::fromInt(1500)->format(Grouping::Dot); // 'Ar 1.500'
+Ariary::fromInt(1500)->format(currency: CurrencyDisplay::Code); // 'MGA 1 500'
 Ariary::parse('1.500 Ar')->amount();          // 1500
 Ariary::parse('1 500,50 Ar')->amount();       // 1500.5
 Ariary::parse('1 500,50 Ar')->digits;         // '1500.5' (exact text)
@@ -82,11 +84,13 @@ cannot hold every digit; `digits` always has them.
 ```php
 use Mdgascar\MdgUtils\Date\DateStyle;
 use Mdgascar\MdgUtils\Date\MalagasyDate;
+use Mdgascar\MdgUtils\Date\MalagasyTime;
 
 MalagasyDate::fromString('2026-11-23')->format();                // '23 Novambra 2026'
 MalagasyDate::fromString('2026-11-23')->format(DateStyle::Full); // 'Alatsinainy 23 Novambra 2026'
 MalagasyDate::fromDateTime(new DateTimeImmutable())->format(DateStyle::Numeric);
 MalagasyDate::parse('23 Novambra 2026')->month;                  // 11
+MalagasyTime::fromString('14:30')->spell();                      // "amin'ny roa sy sasany tolakandro"
 MalagasyDate::monthName(6);                                      // 'Jona'
 ```
 

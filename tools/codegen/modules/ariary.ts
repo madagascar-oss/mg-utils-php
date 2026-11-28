@@ -27,6 +27,7 @@ interface AriaryData {
   readonly readableSeparators: Sourced<string>;
   readonly currencyTokens: Sourced<string>;
   readonly legacyFranc: {
+    readonly code: string;
     readonly symbol: string;
     readonly francsPerAriary: number;
   };
@@ -39,6 +40,8 @@ interface AriaryData {
 
 interface AriaryTables {
   readonly currencySymbol: string;
+  readonly currencyCode: string;
+  readonly francCode: string;
   readonly currencyWord: string;
   readonly symbolSeparator: string;
   readonly groupSize: number;
@@ -73,6 +76,8 @@ function divisionFactor(francsPerAriary: number): number {
 function ariaryTables(data: AriaryData): AriaryTables {
   return {
     currencySymbol: data.currency.symbol,
+    currencyCode: data.currency.code,
+    francCode: data.legacyFranc.code,
     currencyWord: data.currency.word,
     symbolSeparator: data.symbolSeparator.value,
     groupSize: data.grouping.size,
@@ -185,6 +190,8 @@ export function emit(data: AriaryData, source: string): PhpOutput[] {
             varDoc: "list<string>",
           },
           { name: "FRANC_SYMBOL", type: "string", value: tables.francSymbol },
+          { name: "FRANC_CODE", type: "string", value: tables.francCode },
+          { name: "CURRENCY_CODE", type: "string", value: tables.currencyCode },
           {
             name: "FRANCS_PER_ARIARY",
             type: "int",
